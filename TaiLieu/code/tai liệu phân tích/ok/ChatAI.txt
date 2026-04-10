@@ -1,0 +1,279 @@
+# 🧩 ĐẶC TẢ CHỨC NĂNG: CHAT HỖ TRỢ KIỂU “AI – NHÂN VIÊN”
+
+---
+
+## 🔷 1. Mục tiêu
+
+Xây dựng hệ thống **Chat hỗ trợ thông minh**, nơi khách hàng có thể:
+
+* Trao đổi trực tiếp với **AI Hỗ trợ tự động (Chatbot)**.
+* Nếu **AI không hiểu / không có câu trả lời phù hợp**, hệ thống **tự động chuyển tiếp yêu cầu cho nhân viên thật**.
+* Nhân viên sẽ nhận thông báo và có thể trả lời trực tiếp từ giao diện **màn hình Hỗ trợ khách hàng (SupportView)**.
+
+---
+
+## 🔷 2. Actor liên quan
+
+| Actor                | Vai trò                                       |
+| -------------------- | --------------------------------------------- |
+| **Khách hàng**       | Gửi câu hỏi / yêu cầu hỗ trợ                  |
+| **AI Chatbot**       | Tự động phân tích, trả lời câu hỏi thường gặp |
+| **Nhân viên hỗ trợ** | Tiếp nhận và trả lời khi AI không xử lý được  |
+| **Quản trị viên**    | Theo dõi báo cáo, thống kê số cuộc chat       |
+
+---
+
+## 🔷 3. Mô hình tương tác tổng quan
+
+```
+[Khách hàng] ⇄ [AI Chatbot]
+                      ↓
+             (Nếu không trả lời được)
+                      ↓
+            [Tạo yêu cầu hỗ trợ]
+                      ↓
+             [Nhân viên hỗ trợ]
+                      ↓
+             [Trả lời lại khách hàng]
+```
+
+---
+
+## 🔷 4. Mô tả nghiệp vụ chi tiết
+
+### **FS-08: Chat hỗ trợ khách hàng**
+
+#### 🎯 Mục đích
+
+Cung cấp kênh trò chuyện trực tuyến giữa khách hàng và hệ thống AI, có thể chuyển sang nhân viên hỗ trợ khi AI không trả lời được.
+
+---
+
+#### 🧩 Tiền điều kiện
+
+* Khách hàng **đã đăng nhập tài khoản**.
+* Hệ thống AI hỗ trợ được cấu hình sẵn (ví dụ: OpenAI API hoặc nội bộ).
+
+---
+
+#### 🧩 Hậu điều kiện
+
+* Tin nhắn được lưu vào bảng `ChatLichSu`.
+* Nếu AI không trả lời → tạo **Thông báo hỗ trợ mới** cho nhân viên (`ThongBaoHoTro`).
+
+---
+
+### 🧭 Luồng hoạt động chính
+
+| Bước | Mô tả hành động                            | Hệ thống xử lý                                           |
+| ---- | ------------------------------------------ | -------------------------------------------------------- |
+| 1    | Khách mở trang **“Trung tâm hỗ trợ”**      | Hiển thị khung chat AI                                   |
+| 2    | Khách nhập câu hỏi                         | Gửi yêu cầu đến AI                                       |
+| 3    | Hệ thống AI xử lý câu hỏi                  | Gửi phản hồi nếu có                                      |
+| 4    | Nếu AI **không có câu trả lời hợp lệ**     | Tạo **Phiên hỗ trợ nhân viên**                           |
+| 5    | Thông báo được gửi tới giao diện nhân viên | Nhân viên thấy trong màn hình “Hỗ trợ khách hàng”        |
+| 6    | Nhân viên trả lời thủ công                 | Tin nhắn gửi ngược lại khách hàng                        |
+| 7    | Hệ thống lưu toàn bộ nội dung chat         | Ghi vào `ChatLichSu` (bao gồm loại chat: “AI” hoặc “NV”) |
+
+---
+
+### 🧭 Luồng phụ (AI thất bại)
+
+**Điều kiện:**
+
+* AI trả về lỗi, hoặc confidence thấp (≤ threshold).
+
+**Hành động:**
+
+1. Lưu tin nhắn vào `ChatLichSu` với `LoaiChat = 'AI'` và `NoiDungTraLoi = 'Chưa thể trả lời, đã chuyển nhân viên hỗ trợ'`.
+2. Tạo bản ghi trong `ThongBaoHoTro`:
+
+   * `IdKhachHang`
+   * `NoiDungYeuCau`
+   * `TrangThai = 'Chờ xử lý'`
+   * `ThoiGianTao = GETDATE()`
+3. Gửi **thông báo real-time (SignalR hoặc polling)** đến giao diện nhân viên.
+
+---
+
+## 🔷 5. Thiết kế cơ sở dữ liệu (CSDL)
+
+### 🗂️ **Bảng ChatLichSu** *(đã có trong DB của bạn)*
+
+Bổ sung các cột / sửa nhẹ:
+
+```sql
+ALTER TABLE ChatLichSu
+ADD LoaiTinNhan NVARCHAR(20) NULL, -- "KhachHang" / "AI" / "NhanVien"
+    IdThongBao INT NULL;            -- Liên kết với yêu cầu hỗ trợ
+```
+
+---
+
+### 🗂️ **Bảng ThongBaoHoTro** *(bảng mới)*
+
+```sql
+CREATE TABLE ThongBaoHoTro (
+    IdThongBao INT IDENTITY PRIMARY KEY,
+    IdKhachHang INT NOT NULL,
+    NoiDung NVARCHAR(MAX),
+    ThoiGianTao DATETIME DEFAULT GETDATE(),
+    TrangThai NVARCHAR(50) DEFAULT N'Chờ xử lý', -- "Chờ xử lý", "Đang xử lý", "Đã phản hồi"
+    IdNhanVien INT NULL,
+    ThoiGianPhanHoi DATETIME NULL,
+    GhiChu NVARCHAR(500) NULL
+);
+```
+
+---
+
+## 🔷 6. Giao diện người dùng (UI logic)
+
+### **1️⃣ Trang Chat của khách hàng (ChatView.cshtml)**
+
+* Hiển thị 2 luồng chat:
+
+  * Tin của khách (`class="chat-user"`)
+  * Phản hồi của AI / nhân viên (`class="chat-ai"`)
+
+Ví dụ:
+
+```html
+<div class="chat-container">
+    <div class="chat-bubble user">Xin chào, tôi muốn hỏi về việc thuê sách.</div>
+    <div class="chat-bubble ai">Chào bạn! Bạn muốn thuê sách gì ạ?</div>
+</div>
+
+<form method="post" id="chatForm">
+    <input type="text" name="message" class="form-control" placeholder="Nhập câu hỏi...">
+    <button type="submit" class="btn btn-primary">Gửi</button>
+</form>
+```
+
+---
+
+### **2️⃣ Trang hỗ trợ nhân viên (HoTroNhanVienView.cshtml)**
+
+Hiển thị danh sách các yêu cầu chờ xử lý:
+
+| Khách hàng | Nội dung                             | Thời gian | Trạng thái | Thao tác  |
+| ---------- | ------------------------------------ | --------- | ---------- | --------- |
+| Nguyễn An  | “AI không hiểu câu hỏi về thuê sách” | 10:21 AM  | Chờ xử lý  | [Trả lời] |
+
+Khi nhân viên nhấn “Trả lời”, mở khung chat real-time với khách.
+
+---
+
+### **3️⃣ Thông báo real-time (nếu có)**
+
+Sử dụng **SignalR / WebSocket**:
+
+* Khi tạo `ThongBaoHoTro`, gọi Hub:
+
+  ```csharp
+  await _hubContext.Clients.Group("NhanVienHoTro")
+      .SendAsync("NewSupportRequest", thongBao);
+  ```
+* Nhân viên sẽ thấy thông báo nổi:
+  🔔 *“Khách hàng Nguyễn An cần hỗ trợ — AI không trả lời được.”*
+
+---
+
+## 🔷 7. Tích hợp AI Chatbot
+
+AI có thể là:
+
+* **Mô hình OpenAI GPT API** (qua endpoint API key).
+* Hoặc **mô hình nội bộ** (xử lý keyword, dữ liệu nội bộ từ FAQ).
+
+Khi nhận câu hỏi:
+
+```csharp
+var aiResponse = await _aiService.GetAnswerAsync(userQuestion);
+if (string.IsNullOrEmpty(aiResponse) || aiResponse.Contains("không rõ"))
+{
+    // Chuyển yêu cầu sang nhân viên
+    await _supportService.CreateThongBaoHoTro(userId, userQuestion);
+}
+else
+{
+    // Gửi phản hồi AI bình thường
+    SaveToChatLichSu(userId, "AI", aiResponse);
+}
+```
+
+---
+
+## 🔷 8. Báo cáo thống kê hỗ trợ
+
+Tạo báo cáo từ 2 bảng: `ChatLichSu`, `ThongBaoHoTro`
+
+Ví dụ:
+
+```sql
+SELECT 
+    COUNT(*) AS TongYeuCau,
+    SUM(CASE WHEN TrangThai = N'Chờ xử lý' THEN 1 ELSE 0 END) AS ChuaXuLy,
+    SUM(CASE WHEN TrangThai = N'Đã phản hồi' THEN 1 ELSE 0 END) AS DaXuLy,
+    COUNT(DISTINCT IdKhachHang) AS SoKhachHang,
+    COUNT(DISTINCT IdNhanVien) AS SoNhanVienPhanHoi
+FROM ThongBaoHoTro;
+```
+
+> Có thể hiển thị trong trang “Báo cáo hỗ trợ khách hàng”,
+> với biểu đồ tròn: “Tỉ lệ AI xử lý vs Nhân viên xử lý”.
+
+---
+
+## ✅ 9. Kết luận thiết kế
+
+| Thành phần                    | Mô tả                             | Trạng thái                      |
+| ----------------------------- | --------------------------------- | ------------------------------- |
+| **Chat AI tự động**           | Nhận và trả lời câu hỏi cơ bản    | ✅ Hoàn thiện                    |
+| **Chuyển tiếp cho nhân viên** | Khi AI không trả lời được         | ✅ Có luồng rõ ràng              |
+| **Thông báo nhân viên**       | Hiển thị real-time hoặc danh sách | ✅ Có bảng riêng `ThongBaoHoTro` |
+| **Lưu lịch sử chat**          | Dùng bảng `ChatLichSu` (mở rộng)  | ✅ Giữ nguyên DB cũ              |
+| **Báo cáo thống kê**          | Số cuộc chat AI / Nhân viên       | ✅ Dễ triển khai qua SQL View    |
+
+---
+
+## 💡 10. Gợi ý mở rộng
+
+1. **Phân loại tự động yêu cầu hỗ trợ (bằng AI)**
+   → Ví dụ: “thuê sách”, “hoàn tiền”, “vận chuyển”, …
+2. **Tự động gợi ý câu trả lời cho nhân viên**
+   → AI đưa ra “gợi ý trả lời nhanh”, nhân viên có thể chỉnh và gửi.
+3. **Chấm điểm hiệu quả hỗ trợ (CSAT)**
+   → Sau mỗi phiên chat, khách có thể đánh giá “Hài lòng / Không hài lòng”.
+
+---
+
+e:\Tai Lieu Hoc Tap\CS 445 AM\Project\WebCafebookApi\Pages\HoTroView.cshtml
+e:\Tai Lieu Hoc Tap\CS 445 AM\Project\WebCafebookApi\Pages\HoTroView.cshtml.cs
+e:\Tai Lieu Hoc Tap\CS 445 AM\Project\CafebookModel\Model\ModelWeb\HoTroDto.cs
+e:\Tai Lieu Hoc Tap\CS 445 AM\Project\CafebookApi\Controllers\Web\HoTroControllers.cs
+e:\Tai Lieu Hoc Tap\CS 445 AM\Project\CafebookApi\Services\AiService.cs
+e:\Tai Lieu Hoc Tap\CS 445 AM\Project\CafebookApi\Services\ChatHub.cs
+
+- hiện tại khách hàng đã nhận được tin nhắn theo thời gian thực, nhưng nhân viên thì nó chưa cập nhật tin nhắn theo thời gian thực.
+- khi khách hàng chat với nhân viên thì dừng AI và hiện nút chat với nhân viên khách hàng- nếu có yêu cầu khách hàng mới hiện lên trên cùng Danh sách Phiếu Hỗ Trợ và thêm 1 chấm đỏ.
+Nâng cấp 3: Nâng cao Trí tuệ của Tool (Nghiệp vụ sâu)
+Vấn đề hiện tại: Các tool của bạn đang làm nghiệp vụ khá cơ bản.
+
+Ví dụ: KiemTraSanPhamAsync chỉ kiểm tra cờ TrangThaiKinhDoanh của SanPham. Nhưng nếu món đó hết nguyên liệu thì sao?
+
+Nâng cấp: Tận dụng Entities.cs mà bạn đã cung cấp. KiemTraSanPhamAsync phải thông minh hơn.
+
+Cách làm:
+
+Khi khách hỏi "Còn Trà Đào Cam Sả không?".
+
+KiemTraSanPhamAsync không chỉ context.SanPhams.
+
+Nó phải vào context.DinhLuongs để lấy danh sách nguyên liệu của món này (ví dụ: 10g Trà, 20ml Siro Đào).
+
+Sau đó kiểm tra context.NguyenLieus xem TonKho có đủ cho các nguyên liệu đó không.
+
+Chỉ khi đó mới trả lời là "Còn" hay "Hết".
+
+Lợi ích: Cung cấp thông tin chính xác theo thời gian thực, tăng trải nghiệm khách hàng lên tối đa.

@@ -1,0 +1,64 @@
+﻿@using System.Security.Claims
+@using Microsoft.AspNetCore.Http
+
+<ul class="navbar-nav align-items-center">
+    @if (User.Identity?.IsAuthenticated == true && User.IsInRole("KhachHang"))
+    {
+        var displayName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value;
+        if (string.IsNullOrWhiteSpace(displayName))
+        {
+            displayName = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value ?? "Người dùng";
+        }
+
+        // SỬA LỖI: Lấy "AvatarUrl" từ Session thay vì "AvatarBase64"
+        var avatarUrl = Context.Session.GetString("AvatarUrl");
+        var avatarSrc = string.IsNullOrEmpty(avatarUrl)
+        ? "/images/default-avatar.png" // 1. Lấy ảnh MẶC ĐỊNH
+        : avatarUrl; // 2. Dùng thẳng URL từ API
+
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <img src="@avatarSrc" alt="Avatar" class="rounded-circle" style="width: 30px; height: 30px; object-fit: cover; margin-right: 8px;" />
+                Xin chào, @displayName!
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                <li>
+                    <a class="dropdown-item" asp-page="/account/ThongTinCaNhanView">
+                        <span class="material-symbols-outlined" style="vertical-align: sub; font-size: 1.2rem; margin-right: 8px;">account_circle</span>
+                        Thông tin cá nhân
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" asp-page="/account/LichSuDatBanView">
+                        <span class="material-symbols-outlined" style="vertical-align: sub; font-size: 1.2rem; margin-right: 8px;">history</span>
+                        Lịch sử đặt bàn
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" asp-page="/account/LichSuThueSachView">
+                        <span class="material-symbols-outlined" style="vertical-align: sub; font-size: 1.2rem; margin-right: 8px;">book</span>
+                        Sách đang thuê
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form class="form-inline" asp-page="/Account/DangXuat" asp-route-returnUrl="@Url.Page("/Index", new { area = "" })" method="post">
+                        <button type="submit" class="dropdown-item">
+                            <span class="material-symbols-outlined" style="vertical-align: sub; font-size: 1.2rem; margin-right: 8px;">logout</span>
+                            Đăng xuất
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-page="/Account/DangKyView">Đăng ký</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-page="/Account/DangNhapView">Đăng nhập</a>
+        </li>
+    }
+</ul>

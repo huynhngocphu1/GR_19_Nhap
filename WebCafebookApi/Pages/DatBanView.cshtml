@@ -1,0 +1,394 @@
+﻿@page "/dat-ban"
+@model WebCafebookApi.Pages.DatBanViewModel
+@{
+    ViewData["Title"] = "Đặt Bàn";
+}
+
+<style>
+    /* Style cho nút bấm MẶC ĐỊNH hoặc 'available' */
+    .table-select-btn {
+        border-color: var(--cf-brown);
+        color: var(--cf-dark-brown);
+        opacity: 1;
+        cursor: pointer;
+    }
+
+    /* Style cho DIV cha (cột) khi bàn không khả dụng */
+    .table-item.unavailable {
+        display: none;
+        /* Ẩn hoàn toàn bàn không khả dụng */
+    }
+</style>
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="fw-bold" style="color: var(--cf-brown);">ĐẶT BÀN TRỰC TUYẾN</h1>
+        <p class="text-muted lead">Chọn thời gian và vị trí yêu thích của bạn</p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+    {
+        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+            <i class="fa-solid fa-circle-check me-2"></i> @Model.SuccessMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+            <i class="fa-solid fa-circle-exclamation me-2"></i> @Model.ErrorMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0 mb-4" style="background-color: var(--cf-white);">
+        <div class="card-body p-4">
+
+            <form method="post" asp-page-handler="TimKiem" class="row g-3 align-items-end">
+                <div class="col-lg-3 col-md-6">
+                    <label asp-for="Search.Date" class="form-label fw-semibold">Ngày đặt</label>
+                    <input type="date" class="form-control form-control-lg" asp-for="Search.Date" min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                           id="dateInput">
+                    <span asp-validation-for="Search.Date" class="text-danger small"></span>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <label asp-for="Search.Time" class="form-label fw-semibold">Giờ đến</label>
+                    <input type="text" class="form-control form-control-lg" asp-for="Search.Time" id="timeInput"
+                           placeholder="HH:mm (ví dụ: 18:05)" />
+                    <span asp-validation-for="Search.Time" class="text-danger small"></span>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <label asp-for="Search.People" class="form-label fw-semibold">Số người</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="fa-solid fa-user-group"></i></span>
+                        <input type="number" class="form-control form-control-lg" asp-for="Search.People" min="1" max="50">
+                    </div>
+                    <span asp-validation-for="Search.People" class="text-danger small"></span>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <button type="submit" class="btn btn-primary w-100 py-3 fw-bold text-uppercase" style="border-radius: 50px;">
+                        <i class="fa-solid fa-magnifying-glass me-2"></i> Kiểm tra bàn trống
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 h-100" style="background-color: var(--cf-white);">
+                <div class="card-body p-4">
+                    <h4 class="card-title fw-bold mb-4" style="color: var(--cf-dark-brown);">
+                        <i class="fa-solid fa-filter me-2"></i>Lọc theo khu vực
+                    </h4>
+                    <div class="list-group list-group-flush" id="areaFilterList">
+                        <a class="list-group-item list-group-item-action active" href="#" data-khuvuc-id="all">
+                            <i class="fa-solid fa-border-all me-2"></i> Tất cả khu vực
+                        </a>
+                        @foreach (var kv in Model.KhuVucList)
+                        {
+                            <a class="list-group-item list-group-item-action" href="#" data-khuvuc-id="@kv.IdKhuVuc">
+                                <i class="fa-solid fa-location-dot me-2"></i> @kv.TenKhuVuc (@kv.BanList.Count)
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+
+            @if (Model.IsSearched)
+            {
+                <h5 class="mb-3 text-muted">
+                    Kết quả cho <strong>@Model.Search.People người</strong> vào lúc <strong>@Model.Search.Time</strong> ngày <strong>@Model.Search.Date.ToString("dd/MM/yyyy")</strong>:
+                </h5>
+
+                @if (!string.IsNullOrEmpty(Model.SearchSuccessMessage))
+                {
+                    <div class="alert alert-success">@Model.SearchSuccessMessage</div>
+                }
+
+            }
+            else if (string.IsNullOrEmpty(Model.SuccessMessage) && string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <h5 class="mb-3 text-muted">Vui lòng chọn thời gian để xem bàn trống</h5>
+            }
+
+
+            @foreach (var kv in Model.KhuVucList)
+            {
+                <div class="mb-4 area-group" data-area-id="@kv.IdKhuVuc">
+                    <h4 class="fw-bold" style="color: var(--cf-dark-brown);">@kv.TenKhuVuc</h4>
+                    <hr class="mt-2 mb-3">
+                    <div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 g-3">
+                        @foreach (var ban in kv.BanList)
+                        {
+                            string tableStatusClass = "";
+                            string buttonClass = "table-select-btn";
+
+                            if (Model.IsSearched)
+                            {
+                                if (!Model.AvailableTableIds.Contains(ban.IdBan))
+                                {
+                                    tableStatusClass = "unavailable"; // Ẩn DIV cha
+                                }
+                            }
+
+                            <div class="col table-item @tableStatusClass" data-table-ghe="@ban.SoGhe">
+                                <button type="button"
+                                        class="btn btn-outline-light w-100 h-100 p-3 text-start shadow-sm @buttonClass"
+                                        data-bs-toggle="modal" data-bs-target="#confirmBookingModal"
+                                        data-table-id="@ban.IdBan" data-table-name="@ban.SoBan"
+                                        style="border-width: 2px;">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="badge bg-success">@ban.KhuVuc</span>
+                                        <small class="text-muted"><i class="fa-solid fa-chair me-1"></i>@ban.SoGhe</small>
+                                    </div>
+                                    <h4 class="fw-bold mb-0">@ban.SoBan</h4>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmBookingModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white border-0">
+                <h5 class="modal-title fw-bold">
+                    <i class="fa-solid fa-clipboard-check me-2"></i>Xác nhận đặt bàn
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="alert alert-info border-0 d-flex align-items-center" style="background-color: var(--cf-cream); color: var(--cf-dark-brown);">
+                    <i class="fa-solid fa-circle-info me-3 fs-4"></i>
+                    <div>
+                        Bạn đang đặt <strong>Bàn <span id="modalTableName"></span></strong><br>
+                        Vào lúc
+                        <strong>@Model.Search.Time</strong> ngày <strong>@Model.Search.Date.ToString("dd/MM/yyyy")</strong>
+                    </div>
+                </div>
+
+                <form method="post" asp-page-handler="Book" id="bookingForm">
+                    <input type="hidden" asp-for="Search.Date" />
+                    <input type="hidden" asp-for="Search.Time" />
+                    <input type="hidden" asp-for="Search.People" />
+
+                    <input type="hidden" asp-for="Booking.SelectedTableId" id="modalTableIdInput" />
+
+                    @if (!User.Identity.IsAuthenticated)
+                    {
+                        <div class="mb-3">
+                            <label asp-for="Booking.FullName" class="form-label fw-semibold">Họ và tên <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" asp-for="Booking.FullName" required placeholder="Nhập tên của bạn">
+                            <span asp-validation-for="Booking.FullName" class="text-danger small"></span>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Booking.Phone" class="form-label fw-semibold">Số điện thoại <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" asp-for="Booking.Phone" required placeholder="Nhập SĐT liên hệ">
+                                <span asp-validation-for="Booking.Phone" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Booking.Email" class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" asp-for="Booking.Email" required placeholder="Nhận xác nhận qua email">
+                                <span asp-validation-for="Booking.Email" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div id="loggedInUserInfo" class="mb-3">
+                            <label class="form-label fw-semibold text-muted">Thông tin người đặt:</label>
+                            <p class="form-control-plaintext fw-bold mb-0">@Model.Booking.FullName</p>
+                            <p class="form-control-plaintext text-muted mt-0">
+                                @Model.Booking.Phone
+                                @if (!string.IsNullOrEmpty(Model.Booking.Email))
+                                {
+                                    <text>| @Model.Booking.Email</text>
+                                }
+                            </p>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="bookForOtherCheck">
+                            <label class="form-check-label" for="bookForOtherCheck">
+                                Đặt hộ cho người khác?
+                            </label>
+                        </div>
+
+                        <div id="loggedInUserFields">
+                            <input type="hidden" asp-for="Booking.FullName" />
+                            <input type="hidden" asp-for="Booking.Phone" />
+                            @if (!Model.IsLoggedInUserMissingEmail)
+                            {
+                                <input type="hidden" asp-for="Booking.Email" />
+                            }
+                        </div>
+
+                        @if (Model.IsLoggedInUserMissingEmail)
+                        {
+                            <div class="mb-3" id="loggedInEmailInput">
+                                <label asp-for="Booking.Email" class="form-label fw-semibold">Email của bạn <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" asp-for="Booking.Email" required placeholder="Chúng tôi cần email để xác nhận">
+                                <span asp-validation-for="Booking.Email" class="text-danger small"></span>
+                            </div>
+                        }
+
+                        <div id="bookForOtherFields" style="display: none;">
+                            <div class="mb-3">
+                                <label asp-for="Booking.FullName" class="form-label fw-semibold">Họ tên người được đặt hộ <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" asp-for="Booking.FullName" placeholder="Nhập tên" disabled required>
+                            </div>
+                            <div class="row g-2 mb-3">
+                                <div class="col-md-6">
+                                    <label asp-for="Booking.Phone" class="form-label fw-semibold">SĐT người được đặt hộ <span class="text-danger">*</span></label>
+                                    <input type="tel" class="form-control" asp-for="Booking.Phone" placeholder="Nhập SĐT" disabled required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="Booking.Email" class="form-label fw-semibold">Email người được đặt hộ <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" asp-for="Booking.Email" placeholder="Nhập Email" disabled required>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="mb-3">
+                        <label asp-for="Booking.Note" class="form-label fw-semibold">Ghi chú thêm</label>
+                        <textarea class="form-control" asp-for="Booking.Note" rows="2" placeholder="VD: Cần ghế trẻ em, trang trí sinh nhật..."></textarea>
+                    </div>
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary py-3 fw-bold" style="border-radius: 50px;">
+                            HOÀN TẤT ĐẶT BÀN
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Logic truyền data vào Modal
+            var confirmModal = document.getElementById('confirmBookingModal');
+            if (confirmModal) {
+                confirmModal.addEventListener('show.bs.modal', function (event) {
+                    var button = event.relatedTarget;
+                    var tableId = button.getAttribute('data-table-id');
+                    var tableName = button.getAttribute('data-table-name');
+                    document.getElementById('modalTableIdInput').value = tableId;
+                    document.getElementById('modalTableName').textContent = tableName;
+                });
+            }
+
+            // Logic "Đặt Hộ"
+            const bookForOtherCheck = document.getElementById('bookForOtherCheck');
+            if (bookForOtherCheck) {
+                const loggedInInfo = document.getElementById('loggedInUserInfo');
+                const loggedInFields = document.getElementById('loggedInUserFields');
+                const otherFields = document.getElementById('bookForOtherFields');
+                const otherInputs = otherFields.querySelectorAll('input');
+                const loggedInEmailInput = document.getElementById('loggedInEmailInput');
+                const originalValues = {
+                    name: loggedInFields.querySelector('input[name="Booking.FullName"]').value,
+                    phone: loggedInFields.querySelector('input[name="Booking.Phone"]').value,
+                    email: document.querySelector('input[name="Booking.Email"]').value
+                };
+
+                bookForOtherCheck.addEventListener('change', function () {
+                    if (this.checked) {
+                        loggedInInfo.style.display = 'none';
+                        otherFields.style.display = 'block';
+                        if (loggedInEmailInput) loggedInEmailInput.style.display = 'none'; // Ẩn ô email
+                        otherInputs.forEach(i => { i.disabled = false; i.value = ''; });
+                        loggedInFields.querySelectorAll('input').forEach(i => i.disabled = true);
+                        if (loggedInEmailInput) loggedInEmailInput.querySelector('input').disabled = true;
+                    } else {
+                        loggedInInfo.style.display = 'block';
+                        otherFields.style.display = 'none';
+                        if (loggedInEmailInput) loggedInEmailInput.style.display = 'block'; // Hiện lại ô email
+                        otherInputs.forEach(i => i.disabled = true);
+                        loggedInFields.querySelectorAll('input').forEach(i => {
+                            i.disabled = false;
+                            if (i.name === "Booking.FullName") i.value = originalValues.name;
+                            if (i.name === "Booking.Phone") i.value = originalValues.phone;
+                        });
+                        var emailInput = document.querySelector('input[name="Booking.Email"]');
+                        if (emailInput) {
+                            emailInput.disabled = false;
+                            emailInput.value = originalValues.email;
+                        }
+                    }
+                });
+            }
+
+            // Logic Lọc Khu Vực
+            const areaLinks = document.querySelectorAll('#areaFilterList .list-group-item-action');
+            const areaGroups = document.querySelectorAll('.area-group');
+            areaLinks.forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    areaLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    const targetAreaId = this.getAttribute('data-khuvuc-id');
+                    areaGroups.forEach(group => {
+                        group.style.display = (targetAreaId === 'all' || group.getAttribute('data-area-id') === targetAreaId) ? 'block' : 'none';
+                    });
+                });
+            });
+
+            // ***** NÂNG CẤP MỚI: TỰ ĐỘNG ĐIỀN SĐT *****
+            var phoneInput = document.querySelector('input[asp-for="Booking.Phone"]');
+            var nameInput = document.querySelector('input[asp-for="Booking.FullName"]');
+            var emailInput = document.querySelector('input[asp-for="Booking.Email"]');
+
+            // Chỉ chạy khi 3 ô này tồn tại (tức là form khách vãng lai)
+            if (phoneInput && nameInput && emailInput) {
+
+                phoneInput.addEventListener('blur', function() { // 'blur' là khi người dùng bấm ra ngoài
+                    var phone = this.value;
+                    if (phone && phone.length >= 9) { // Chỉ tìm khi SĐT có vẻ hợp lệ
+
+                        // Gọi API đã tạo ở DatBanWebController.cs
+                        fetch(`/api/web/datban/get-customer-info?phone=${phone}`)
+                            .then(response => {
+                                if (response.ok) {
+                                    return response.json();
+                                }
+                                throw new Error('Customer not found');
+                            })
+                            .then(data => {
+                                // Tự động điền nếu SĐT tồn tại
+                                if (nameInput.value === '') { // Chỉ điền nếu ô tên còn trống
+                                    nameInput.value = data.hoTen;
+                                }
+                                if (emailInput.value === '') { // Chỉ điền nếu ô email còn trống
+                                    emailInput.value = data.email;
+                                }
+                            })
+                            .catch(error => {
+                                // Không tìm thấy SĐT, không làm gì cả
+                                console.log('Không tìm thấy thông tin SĐT.');
+                            });
+                    }
+                });
+            }
+            // ***** HẾT PHẦN NÂNG CẤP *****
+
+        });
+    </script>
+}

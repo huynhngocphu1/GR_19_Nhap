@@ -1,0 +1,134 @@
+﻿@page
+@model WebCafebookApi.Pages.ThuVienSachViewModel
+@{
+    ViewData["Title"] = "Thư Viện Sách";
+    // ... (routeData giữ nguyên) ...
+    var routeData = new Dictionary<string, string?>
+    {
+        { "TheLoai", Model.TheLoai?.ToString() },
+        { "Search", Model.Search },
+        { "SortBy", Model.SortBy },
+        { "TrangThai", Model.TrangThai }
+    };
+}
+
+<div class="container mt-5">
+    <div class="main-content-card">
+
+        <div class="text-center mb-4">
+            <h1 class="page-title">@ViewData["Title"]</h1>
+            <p class="page-lead">Khám phá kho tàng tri thức trong khi thưởng thức ly cà phê của bạn.</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger">@Model.ErrorMessage</div>
+        }
+
+        <div class="card filter-card mb-4">
+            <div class="card-body">
+                <form method="get" asp-page="/ThuVienSachView">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-4 material-input-group">
+                            <label asp-for="Search" class="form-label">Tìm theo tên, tác giả</label>
+                            <input asp-for="Search" class="material-input" placeholder="Dế Mèn Phiêu Lưu Ký...">
+                        </div>
+                        <div class="col-md-2 material-input-group">
+                            <label asp-for="TheLoai" class="form-label">Thể loại</label>
+                            <select asp-for="TheLoai" asp-items="@Model.TheLoaiList" class="material-select"></select>
+                        </div>
+                        <div class="col-md-2 material-input-group">
+                            <label asp-for="TrangThai" class="form-label">Tình trạng</label>
+                            <select asp-for="TrangThai" asp-items="@Model.TrangThaiList" class="material-select"></select>
+                        </div>
+                        <div class="col-md-2 material-input-group">
+                            <label asp-for="SortBy" class="form-label">Sắp xếp</label>
+                            <select asp-for="SortBy" asp-items="@Model.SortList" class="material-select"></select>
+                        </div>
+                        <div class="col-md-2 d-grid">
+                            <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4">
+            @if (Model.SachResult != null && Model.SachResult.Items.Any())
+            {
+                @foreach (var sach in Model.SachResult.Items)
+                {
+                    <div class="col">
+                        <div class="card h-100 shadow-sm product-card">
+                            @{
+                                // SỬA: Dùng AnhBiaUrl
+                                var imgSrc = string.IsNullOrEmpty(sach.AnhBiaUrl) ? "/images/default-book-cover.png" : sach.AnhBiaUrl;
+                            }
+                            <a asp-page="/ChiTietSachView" asp-route-id="@sach.IdSach">
+                                <div class="card-img-container">
+                                    <img src="@imgSrc" class="card-img-top book-card-img" alt="@sach.TieuDe">
+                                </div>
+                            </a>
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title book-card-title">
+                                    <a asp-page="/ChiTietSachView" asp-route-id="@sach.IdSach" class="text-decoration-none text-dark stretched-link">
+                                        @sach.TieuDe
+                                    </a>
+                                </h5>
+                                <p class="card-text text-muted small book-card-author">@sach.TacGia</p>
+                                <div class="mt-auto d-flex justify-content-between align-items-center">
+                                    <span class="text-danger fw-bold">@sach.GiaBia.ToString("N0") đ <small>(Cọc)</small></span>
+                                    @if (sach.SoLuongCoSan > 0)
+                                    {
+                                        <span class="badge bg-success">Còn sách</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Đã thuê hết</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12">
+                    <p class="text-center text-muted fs-5 mt-5">Không tìm thấy cuốn sách nào phù hợp.</p>
+                </div>
+            }
+        </div>
+
+        @if (Model.SachResult != null && Model.SachResult.TotalPages > 1)
+        {
+            <nav aria-label="Trang thư viện" class="mt-5">
+                <ul class="pagination justify-content-center">
+                     </ul>
+            </nav>
+        }
+
+    </div> </div> 
+    @section Styles {
+    <style>
+        .book-card-img {
+            height: 300px;
+            object-fit: cover;
+        }
+        .book-card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            height: 2.5em; /* 1.25em * 2 */
+        }
+        .book-card-author {
+            font-size: 0.9rem;
+            height: 1.5em; /* Giới hạn 1 dòng */
+            overflow: hidden;
+        }
+    </style>
+}

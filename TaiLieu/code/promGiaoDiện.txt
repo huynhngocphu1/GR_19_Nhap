@@ -1,0 +1,11 @@
+Hãy thiết kế lại giao diện.
+Yêu cầu:
+1.  **Chủ đề (Theme):** Áp dụng phong cách Material Design, tập trung vào chủ đề quán cà phê với tông màu chủ đạo là nâu, be, kem và cam đất. Tạo cảm giác ấm cúng, hiện đại và chuyên nghiệp.
+
+2.  **Hiệu ứng (Animation):** Thêm các hiệu ứng chuyển động mượt mà cho các điều khiển (button, textbox, list...) khi người dùng tương tác (hover, click). Tạo hiệu ứng chuyển trang nhẹ nhàng nếu có thể.
+
+3.  **Bố cục (Layout):** Tối ưu lại bố cục để giao diện trông sạch sẽ, thoáng đãng và dễ sử dụng hơn. Đảm bảo tính nhất quán về font chữ, kích thước và khoảng cách.
+
+4.  **Biểu tượng (Icons):** Sử dụng các biểu tượng (icons) từ thư viện Material Design để thay thế các văn bản hoặc nút bấm khi hợp lý, giúp giao diện trực quan hơn.
+
+Mục tiêu là tạo ra một giao diện "lung linh", đồng bộ và mang đậm dấu ấn của chủ đề "Cafebook".

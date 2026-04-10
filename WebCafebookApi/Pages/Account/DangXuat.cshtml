@@ -1,0 +1,14 @@
+﻿@page
+@model WebCafebookApi.Pages.Account.DangXuatModel
+@{
+    // Trang này không cần hiển thị gì đặc biệt,
+    // chỉ cần để PageModel xử lý logic đăng xuất trong OnPost.
+    ViewData["Title"] = "Đăng xuất";
+}
+
+<header>
+    <h1>@ViewData["Title"]</h1>
+    <p>Bạn đã đăng xuất thành công.</p>
+    @* Có thể thêm nút quay lại trang chủ *@
+    <a asp-page="/TrangChuView">Quay lại Trang Chủ</a>
+</header>

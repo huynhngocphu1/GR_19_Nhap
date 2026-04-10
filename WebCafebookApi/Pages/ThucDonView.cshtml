@@ -1,0 +1,110 @@
+﻿@page
+@model WebCafebookApi.Pages.ThucDonViewModel
+@{
+    ViewData["Title"] = "Thực Đơn";
+    // ... (routeData giữ nguyên) ...
+    var routeData = new Dictionary<string, string?>
+    {
+        { "LoaiId", Model.LoaiId?.ToString() },
+        { "Search", Model.Search },
+        { "SortBy", Model.SortBy },
+        { "GiaMin", Model.GiaMin?.ToString() },
+        { "GiaMax", Model.GiaMax?.ToString() }
+    };
+}
+
+<div class="container mt-4">
+    <div class="text-center mb-4">
+        <h1>@ViewData["Title"]</h1>
+        <p class="lead text-muted">Khám phá các món ăn và đồ uống đặc sắc tại Cafebook.</p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">@Model.ErrorMessage</div>
+    }
+
+    <div class="row">
+        <div class="col-lg-3 mb-4">
+            <form method="get" asp-page="/ThucDonView">
+                <div class="card sticky-top filter-card" style="top: 20px;">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.5rem;">filter_list</span>
+                            Tìm & Lọc
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3 material-input-group">
+                            <label asp-for="Search" class="form-label fw-bold">Tìm theo tên</label>
+                            <input asp-for="Search" class="material-input" placeholder="Cà phê sữa...">
+                        </div>
+
+                        <div class="mb-3 material-input-group">
+                            <label asp-for="LoaiId" class="form-label fw-bold">Danh mục</label>
+                            <select asp-for="LoaiId" asp-items="@Model.LoaiSanPhamsList" class="material-select"></select>
+                        </div>
+
+                        <div class="mb-3 material-input-group">
+                            <label class="form-label fw-bold">Khoảng giá</label>
+                            <div class="input-group">
+                                <input asp-for="GiaMin" class="material-input" placeholder="Từ" type="number" step="1000">
+                                <input asp-for="GiaMax" class="material-input" placeholder="Đến" type="number" step="1000">
+                            </div>
+                        </div>
+
+                        <div class="mb-3 material-input-group">
+                            <label asp-for="SortBy" class="form-label fw-bold">Sắp xếp</label>
+                            <select asp-for="SortBy" class="material-select">
+                                <option value="ten_asc">Tên (A-Z)</option>
+                                <option value="ten_desc">Tên (Z-A)</option>
+                                <option value="gia_asc">Giá (Thấp đến Cao)</option>
+                                <option value="gia_desc">Giá (Cao đến Thấp)</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Áp dụng</button>
+                        <a asp-page="/ThucDonView" class="btn btn-link text-muted w-100 mt-2">Xóa bộ lọc</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-lg-9">
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                @if (Model.MenuResult != null && Model.MenuResult.Items.Any())
+                {
+                    @foreach (var item in Model.MenuResult.Items)
+                    {
+                        <div class="col">
+                            <a asp-page="/ChiTietSanPhamView" asp-route-id="@item.IdSanPham" class="text-decoration-none">
+                                <div class="card h-100 shadow-sm product-card">
+                                    @{
+                                        var imgSrc = string.IsNullOrEmpty(item.AnhSanPhamUrl)
+                                        ? "/images/default-food-icon.png"
+                                        : item.AnhSanPhamUrl;
+                                    }
+                                    <div class="card-img-container">
+                                        <img src="@imgSrc" class="card-img-top product-card-img" alt="@item.TenSanPham">
+                                    </div>
+                                    <div class="card-body d-flex flex-column">
+                                        <h5 class="card-title text-decoration-none">@item.TenSanPham</h5>
+                                        <p class="card-text text-muted small">@item.TenLoaiSP</p>
+                                        <h5 class="card-subtitle mt-auto mb-2 text-danger fw-bold">@item.DonGia.ToString("N0") đ</h5>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12">
+                        <p class="text-center text-muted fs-5 mt-5">Không tìm thấy sản phẩm nào phù hợp.</p>
+                    </div>
+                }
+            </div>
+
+        </div>
+    </div>
+</div>

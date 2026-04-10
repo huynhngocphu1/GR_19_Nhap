@@ -1,0 +1,212 @@
+﻿<Page x:Class="AppCafebookApi.View.common.CaiDatWindow"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:local="clr-namespace:AppCafebookApi.View.common"
+      mc:Ignorable="d"
+      d:DesignHeight="700" d:DesignWidth="900"
+      FontFamily="Segoe UI"
+      Background="#FFF8E1"
+      Loaded="Page_Loaded">
+
+    <Page.Resources>
+        <SolidColorBrush x:Key="PrimaryBrownBrush" Color="#6F4E37"/>
+        <SolidColorBrush x:Key="SuccessBrush" Color="#66BB6A"/>
+        <SolidColorBrush x:Key="ErrorBrush" Color="#EF5350"/>
+        <SolidColorBrush x:Key="BorderGrayBrush" Color="#BDBDBD"/>
+        <Style TargetType="GroupItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="GroupItem">
+                        <StackPanel>
+                            <TextBlock Text="{Binding Name}" 
+                                       FontSize="16" FontWeight="Bold" 
+                                       Foreground="{StaticResource PrimaryBrownBrush}" 
+                                       Margin="5,15,0,5" />
+                            <ItemsPresenter />
+                        </StackPanel>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SettingTextBox" TargetType="Grid">
+            <Setter Property="Margin" Value="0,2,0,10"/>
+        </Style>
+
+        <Style x:Key="BackButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryBrownBrush}"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="PlaceholderTextBlock" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#AAAAAA"/>
+            <Setter Property="IsHitTestVisible" Value="False"/>
+            <Setter Property="Margin" Value="5,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Grid.Row" Value="0"/>
+        </Style>
+
+        <Style x:Key="HelperTextBlock" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#757575"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Grid.Row" Value="1" />
+            <Setter Property="Margin" Value="2,2,0,0"/>
+        </Style>
+
+        <Style x:Key="SaveButton" TargetType="Button">
+            <Setter Property="Background" Value="#66BB6A"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Content" Value="Lưu"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="8,5"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderGrayBrush}"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Style.Triggers>
+                <Trigger Property="IsKeyboardFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrownBrush}"/>
+                    <Setter Property="BorderThickness" Value="0,0,0,2"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+    </Page.Resources>
+
+    <Grid Margin="20" Opacity="1" x:Name="MainGrid">
+        <Grid.RenderTransform>
+            <TranslateTransform Y="20"/>
+        </Grid.RenderTransform>
+        <Grid.Triggers>
+            <EventTrigger RoutedEvent="Loaded">
+                <BeginStoryboard>
+                    <Storyboard>
+                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.5"/>
+                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" To="0" Duration="0:0:0.5">
+                            <DoubleAnimation.EasingFunction>
+                                <BackEase EasingMode="EaseOut" Amplitude="0.2"/>
+                            </DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                    </Storyboard>
+                </BeginStoryboard>
+            </EventTrigger>
+        </Grid.Triggers>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Cài đặt Thông tin Quán &amp; Hệ thống" FontSize="20" FontWeight="Bold" Foreground="#4E342E" Margin="0,0,0,15"/>
+
+        <ListView x:Name="lvSettings" Grid.Row="1" Background="White" BorderThickness="1" BorderBrush="#E0E0E0">
+
+            <ListView.GroupStyle>
+                <GroupStyle HidesIfEmpty="True"/>
+            </ListView.GroupStyle>
+
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Giá trị" Width="550">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid Style="{StaticResource SettingTextBox}">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBox x:Name="txtValue" 
+                                             Text="{Binding GiaTri, UpdateSourceTrigger=PropertyChanged}" 
+                                             Padding="5" 
+                                             BorderThickness="1" 
+                                             BorderBrush="#BDBDBD"
+                                             TextWrapping="Wrap" AcceptsReturn="True"
+                                             MinHeight="30" MaxHeight="100" Grid.Row="0"/>
+
+                                    <TextBlock Text="{Binding MoTa}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource PlaceholderTextBlock}">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Text, ElementName=txtValue}" Value="">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+
+                                    <TextBlock Text="{Binding MoTa}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource HelperTextBlock}">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Text, ElementName=txtValue}" Value="">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Grid>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+
+                    <GridViewColumn Header="Hành động" Width="100">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="Lưu" 
+                                        Style="{StaticResource SaveButton}"
+                                        Click="BtnSaveRow_Click"
+                                        Tag="{Binding}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Tên Cài Đặt (Ẩn)" Width="0" DisplayMemberBinding="{Binding TenCaiDat}"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <Border x:Name="LoadingOverlay" Grid.Row="1" Background="#80FFFFFF" Visibility="Collapsed">
+            <TextBlock Text="Đang tải dữ liệu..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" Foreground="#4E342E"/>
+        </Border>
+
+        <StackPanel Grid.Row="2" Margin="0,15,0,0">
+            <Border x:Name="NotificationBorder" Background="{StaticResource SuccessBrush}" 
+                    CornerRadius="4" Padding="15,10" Margin="0,0,0,10"
+                    Visibility="Collapsed">
+                <Border.Effect>
+                    <DropShadowEffect ShadowDepth="1" Color="#000" Opacity="0.1" BlurRadius="10"/>
+                </Border.Effect>
+                <TextBlock x:Name="NotificationText" Text="Lưu thành công!" 
+                           Foreground="White" FontWeight="SemiBold"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <Button x:Name="btnBack" 
+                    Style="{StaticResource BackButton}"
+                    HorizontalAlignment="Left" 
+                    Click="BtnBack_Click">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&lt; Quay lại" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </Grid>
+</Page>

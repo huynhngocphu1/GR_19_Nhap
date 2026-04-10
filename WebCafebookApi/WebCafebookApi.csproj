@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>wwwroot\images\logo.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Data\**" />
+    <Content Remove="Data\**" />
+    <EmbeddedResource Remove="Data\**" />
+    <None Remove="Data\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="wwwroot\images\default-avatar.png" />
+    <Content Remove="wwwroot\images\default-book-cover.png" />
+    <Content Remove="wwwroot\images\default-food-icon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CafebookApi\CafebookApi.csproj" />
+    <ProjectReference Include="..\CafebookModel\CafebookModel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="wwwroot\images\default-avatar.png" />
+    <Resource Include="wwwroot\images\default-book-cover.png" />
+    <Resource Include="wwwroot\images\default-food-icon.png" />
+    <Resource Include="wwwroot\images\logo.ico" />
+    <Resource Include="wwwroot\images\logo.png" />
+  </ItemGroup>
+
+</Project>

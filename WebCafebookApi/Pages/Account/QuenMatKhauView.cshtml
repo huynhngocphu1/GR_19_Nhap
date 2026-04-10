@@ -1,0 +1,56 @@
+﻿@page "/Account/ForgotPassword"
+@* SỬA: Namespace *@
+@model WebCafebookApi.Pages.Account.QuenMatKhauViewModel
+@{
+    ViewData["Title"] = "Quên Mật Khẩu";
+    Layout = null; // Dùng layout login
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Cafebook</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="login-page-body">
+
+    <div class="login-wrapper">
+        <div class="login-container">
+            <div class="login-brand-col d-none d-md-flex">
+                <img src="/images/logo.png" alt="Cafebook Logo">
+                <h1 class="mb-2">Cafebook</h1>
+                <p class="fs-5 opacity-75">Khôi phục tài khoản</p>
+            </div>
+
+            <div class="login-form-col">
+                <a asp-page="/Account/DangNhapView" class="text-decoration-none mb-3" style="align-self: flex-start;">
+                    <span class="material-symbols-outlined" style="vertical-align: middle;">arrow_back</span>
+                    Về trang Đăng nhập
+                </a>
+
+                <h2>@ViewData["Title"]</h2>
+                <p class="text-muted">Nhập email của bạn để nhận mã xác nhận.</p>
+
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-2" role="alert"></div>
+
+                    <div class="form-floating-material">
+                        <input asp-for="Input.Email" class="form-control" autocomplete="email" aria-required="true" placeholder=" " />
+                        <label asp-for="Input.Email" class="form-label">Email</label>
+                        <span class="material-symbols-outlined">mail</span>
+                        <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                    </div>
+
+                    <button type="submit" class="w-100 btn btn-lg btn-primary mt-3">Gửi Mã Xác Nhận</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <partial name="_ValidationScriptsPartial" />
+</body>
+</html>

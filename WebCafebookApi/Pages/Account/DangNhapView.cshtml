@@ -1,0 +1,79 @@
+﻿@page "/Account/Login"
+@model WebCafebookApi.Pages.Account.DangNhapViewModel
+@{
+    ViewData["Title"] = "Đăng nhập";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Cafebook</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="login-page-body">
+
+    <div class="login-wrapper">
+        <div class="login-container">
+
+            <div class="login-brand-col d-none d-md-flex">
+                <img src="/images/logo.png" alt="Cafebook Logo">
+                <h1 class="mb-2">Cafebook</h1>
+                <p class="fs-5 opacity-75">Awaken your senses</p>
+            </div>
+
+            <div class="login-form-col">
+                <a asp-page="/TrangChuView" class="text-decoration-none mb-3" style="align-self: flex-start;">
+                    <span class="material-symbols-outlined" style="vertical-align: middle;">arrow_back</span>
+                    Về Trang Chủ
+                </a>
+
+                <h2>@ViewData["Title"]</h2>
+                <p class="text-muted">Chào mừng trở lại! Vui lòng nhập thông tin của bạn.</p>
+
+                <form id="account" method="post">
+
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-2" role="alert"></div>
+
+                    <div class="form-floating-material">
+                        <input asp-for="Input.LoginIdentifier" class="form-control" autocomplete="username" aria-required="true" placeholder=" " />
+                        <label asp-for="Input.LoginIdentifier" class="form-label">Email, Username hoặc SĐT</label>
+                        <span class="material-symbols-outlined">person</span>
+                        <span asp-validation-for="Input.LoginIdentifier" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-floating-material">
+                        <input asp-for="Input.Password" type="password" class="form-control" autocomplete="current-password" aria-required="true" placeholder=" " />
+                        <label asp-for="Input.Password" class="form-label">Mật khẩu</label>
+                        <span class="material-symbols-outlined">lock</span>
+                        <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="text-end mb-3">
+                        <a asp-page="/account/QuenMatKhauView" class="small">Quên mật khẩu?</a>
+                    </div>
+
+                    <div>
+                        <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Đăng nhập</button>
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <p class="text-muted mb-0">
+                            Chưa có tài khoản?
+                            <a asp-page="/account/DangKyView" asp-route-returnUrl="@Model.ReturnUrl">Đăng ký ngay</a>
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

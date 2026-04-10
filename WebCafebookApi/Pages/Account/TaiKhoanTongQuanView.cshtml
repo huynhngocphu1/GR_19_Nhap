@@ -1,0 +1,59 @@
+﻿@page "/Account/TaiKhoanTongQuanView"
+@model WebCafebookApi.Pages.Account.TaiKhoanTongQuanViewModel
+@{
+    ViewData["Title"] = "Tài khoản của tôi";
+    Layout = "_Layout_Account"; // Sử dụng layout tài khoản
+}
+
+<h3 class="page-title-account">Chào mừng, @Model.HoTen!</h3>
+<p class="page-lead-account">Đây là trang tổng quan tài khoản của bạn.</p>
+
+<hr class="my-4" />
+
+<h5 class="mb-3">Thành viên Cafebook</h5>
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card overview-card h-100">
+            <div class="card-body">
+                <div class="overview-card-icon" style="color: var(--cf-orange);">
+                    <span class="material-symbols-outlined">stars</span>
+                </div>
+                <h6 class="text-muted mb-1">Điểm tích lũy</h6>
+                <h2 class="fw-bold">@Model.Overview.DiemTichLuy</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card overview-card h-100">
+            <div class="card-body">
+                <div class="overview-card-icon">
+                    <span class="material-symbols-outlined">calendar_month</span>
+                </div>
+                <h6 class="text-muted mb-1">Ngày tham gia</h6>
+                <h2 class="fw-bold">@Model.Overview.NgayTao.ToString("dd/MM/yyyy")</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card overview-card h-100">
+            <div class="card-body">
+                <div class="overview-card-icon">
+                    <span class="material-symbols-outlined">receipt_long</span>
+                </div>
+                <h6 class="text-muted mb-1">Tổng số hóa đơn</h6>
+                <h2 class="fw-bold">@Model.Overview.TongHoaDon</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card overview-card h-100">
+            <div class="card-body">
+                <div class="overview-card-icon">
+                    <span class="material-symbols-outlined">payments</span>
+                </div>
+                <h6 class="text-muted mb-1">Tổng chi tiêu</h6>
+                <h2 class="fw-bold">@Model.Overview.TongChiTieu.ToString("N0") đ</h2>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,111 @@
+﻿@page "/Privacy"
+@model WebCafebookApi.Pages.ChinhSachViewModel
+@{
+    ViewData["Title"] = "Chính sách & Giới thiệu";
+}
+
+@* ... (Phần @section và <style> giữ nguyên) ... *@
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+}
+<style>
+    .policy-container h2 {
+        color: var(--cf-dark-brown, #4E342E);
+        font-weight: 700;
+        margin-top: 2.5rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--cf-orange, #D27D2D);
+    }
+
+    .policy-container h3 {
+        color: var(--cf-brown, #6F4E37);
+        font-weight: 600;
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .policy-container p,
+    .policy-container li {
+        line-height: 1.7;
+        color: var(--cf-text, #4E342E);
+        font-size: 1.05rem;
+    }
+
+    .policy-container ul {
+        padding-left: 1.5rem;
+    }
+</style>
+
+<div class="container mt-5 mb-5 policy-container">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+
+            <div class="text-center mb-5">
+                <h1>Về Cafebook & Điều khoản</h1>
+                <p class="lead text-muted">Những giá trị cốt lõi và quy định chung tại không gian của chúng tôi.</p>
+            </div>
+
+            <h2>Về Chúng Tôi</h2>
+            <p>
+                <strong>Cafebook</strong> được sinh ra từ niềm đam mê bất tận với hai thứ: hương vị đậm đà của cà phê nguyên chất và giá trị vĩnh cửu của những trang sách. Chúng tôi không chỉ là một quán cà phê, chúng tôi là một "Ốc đảo tri thức", một không gian yên tĩnh nơi bạn có thể tạm gác lại những bộn bề của cuộc sống để đắm mình trong thế giới của riêng mình.
+            </p>
+            <p>
+                Sứ mệnh của chúng tôi là tạo ra một cộng đồng nơi những người yêu sách và đam mê cà phê có thể kết nối, chia sẻ và truyền cảm hứng. Từ hạt cà phê Robusta Việt Nam được rang xay tỉ mỉ đến những cuốn sách kinh điển thế giới được chọn lọc kỹ càng, mọi chi tiết tại Cafebook đều được chăm chút để mang đến cho bạn trải nghiệm trọn vẹn nhất.
+            </p>
+
+            <h2>Điều Khoản Dịch Vụ</h2>
+            <p>
+                Chào mừng bạn đến với Cafebook. Bằng việc sử dụng các dịch vụ của chúng tôi (bao gồm gọi món, đặt bàn, và thuê sách), bạn đồng ý tuân thủ các điều khoản và điều kiện dưới đây:
+            </p>
+
+            <h3>1. Quy định chung tại cửa hàng</h3>
+            <ul>
+                <li>Vui lòng giữ gìn không gian yên tĩnh, đặc biệt tại các khu vực làm việc và đọc sách (Tầng 2, Gác lửng).</li>
+                <li>Không mang đồ ăn, thức uống từ bên ngoài vào cửa hàng.</li>
+                <li>Chúng tôi không chịu trách nhiệm về tài sản cá nhân của quý khách.</li>
+            </ul>
+
+            <h3>2. Dịch vụ Đặt bàn</h3>
+            <ul>
+                <li>Việc đặt bàn trực tuyến qua website hoặc ứng dụng cần được thực hiện trước ít nhất 1 giờ.</li>
+                <li>Chúng tôi sẽ giữ bàn cho bạn trong vòng 15 phút kể từ thời gian đặt hẹn. Sau thời gian trên, đặt hẹn có thể bị hủy để nhường chỗ cho khách hàng khác.</li>
+                <li>Đối với các yêu cầu đặc biệt (phòng VIP, nhóm đông), vui lòng liên hệ trực tiếp qua hotline.</li>
+            </ul>
+
+            <h3>3. Dịch vụ Thuê sách</h3>
+            <ul>
+                <li>Bạn có thể đọc sách tại chỗ miễn phí khi sử dụng dịch vụ của quán.</li>
+                <li>Khi thuê sách mang về, bạn cần cung cấp thông tin cá nhân (Tên, SĐT) và thanh toán một khoản tiền cọc tương đương với giá bìa của cuốn sách.</li>
+
+                <li>
+                    Phí dịch vụ thuê sách (hiện tại là <strong>@Model.ChinhSach.PhiThue.ToString("N0")đ</strong>) và mọi khoản phí phạt trễ hạn (nếu có) sẽ được khấu trừ vào tiền cọc khi bạn trả sách.
+                </li>
+                <li>
+                    Thời gian thuê tiêu chuẩn là 7 ngày. Phí phạt trễ hạn là <strong>@Model.ChinhSach.PhiTraTreMoiNgay.ToString("N0")đ</strong> cho mỗi ngày quá hạn.
+                </li>
+
+                <li>Vui lòng giữ gìn sách cẩn thận, không làm rách, ướt, hoặc ghi chú lên sách. Trường hợp sách bị hư hỏng nặng, chúng tôi có thể sẽ giữ lại toàn bộ tiền cọc để bù đắp chi phí.</li>
+            </ul>
+
+            <h3>4. Chính sách thành viên & Tích điểm</h3>
+            <ul>
+                <li>Khi đăng ký tài khoản trên website (hoặc cung cấp SĐT tại quầy), bạn sẽ tự động trở thành thành viên của Cafebook.</li>
+
+                <li>
+                    Với mỗi <strong>@Model.ChinhSach.DiemNhanVND.ToString("N0")đ</strong> trong hóa đơn, bạn sẽ được tích <strong>1 điểm</strong>.
+                </li>
+                <li>
+                    Mỗi <strong>1 điểm</strong> tích lũy có giá trị quy đổi thành <strong>@Model.ChinhSach.DiemDoiVND.ToString("N0")đ</strong>, được trừ tối đa 50% trực tiếp vào hóa đơn lần sau.
+                </li>
+            </ul>
+
+            <h3>5. Miễn trừ trách nhiệm</h3>
+            <p>
+                Cafebook có quyền thay đổi, cập nhật hoặc ngưng các điều khoản này, cũng như các chương trình khuyến mãi, giá cả dịch vụ mà không cần báo trước. Các thay đổi sẽ được cập nhật công khai trên website này.
+            </p>
+
+        </div>
+    </div>
+</div>

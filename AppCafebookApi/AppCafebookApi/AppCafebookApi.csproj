@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows7.0</TargetFramework>
+    <NoWarn>$(NoWarn);NU1701</NoWarn>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>logo.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\images\default-avatar.png" />
+    <None Remove="Assets\images\default-book-cover.png" />
+    <None Remove="Assets\images\default-food-icon.png" />
+    <None Remove="Assets\logo.ico" />
+    <None Remove="Assets\logo.png" />
+    <None Remove="Fonts\Font Awesome 6 Free-Solid-900.otf" />
+    <None Remove="logo.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="logo.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EPPlus" Version="8.2.1" />
+    <PackageReference Include="LiveCharts.Wpf" Version="0.9.7" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="System.Net.Http.Json" Version="9.0.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\CafebookModel\CafebookModel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\images\default-avatar.png" />
+    <Resource Include="Assets\images\default-book-cover.png" />
+    <Resource Include="Assets\images\default-food-icon.png" />
+    <Resource Include="Assets\logo.ico" />
+    <Resource Include="Assets\logo.png" />
+    <Resource Include="Fonts\Font Awesome 6 Free-Solid-900.otf" />
+    <Resource Include="logo.ico" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,600 @@
+﻿@page "/Employee/GoiMon"
+@model WebCafebookApi.Pages.employee.GoiMonViewModel
+@{
+    ViewData["Title"] = "Gọi Món";
+    Layout = "_Layout_Employee";
+}
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger">@Model.ErrorMessage</div>
+    <a asp-page="/Employee/SoDoBan" class="btn btn-primary">Quay lại Sơ đồ bàn</a>
+}
+else
+{
+    <div class="goimon-layout-container" 
+         id="goimon-main-container"
+         data-id-hoadon="@Model.IdHoaDon"
+         data-id-nhanvien="@Model.IdNhanVien"
+         data-jwt-token="@Model.JwtToken">
+
+        <nav class="goimon-danhmuc-list card">
+            <div class="card-body">
+                <h6 class="px-3 text-muted text-uppercase small">Danh Mục</h6>
+                <ul class="nav flex-column nav-pills" id="category-list">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" data-id-danhmuc="0">
+                            <span class="material-symbols-outlined">select_all</span>
+                            Tất cả
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <div class="goimon-sanpham-grid">
+            <div class="p-3">
+                <input type="search" id="search-bar" class="form-control" placeholder="Tìm kiếm món..." />
+            </div>
+            <div class="goimon-sanpham-list" id="product-list">
+                </div>
+        </div>
+
+        <div class="goimon-hoadon-panel card">
+            <div class="card-header p-3">
+                <h5 class="fw-bold mb-0" id="lblTieuDeHoaDon">Hóa đơn - ...</h5>
+            </div>
+            <div class="goimon-hoadon-body">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Tên Món</th>
+                            <th style="width: 120px;">Số Lượng</th>
+                            <th style="width: 50px;">Xóa</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bill-details-body">
+                        </tbody>
+                </table>
+            </div>
+            
+            <div class="card-footer goimon-hoadon-footer">
+                <div class="bill-summary">
+                    <div class="bill-row">
+                        <span>Tổng tiền:</span>
+                        <span id="lblTongTien">0 đ</span>
+                    </div>
+                    <div class="bill-row">
+                        <span>Khuyến mãi:</span>
+                        <select id="cboKhuyenMai" class="form-select form-select-sm" style="max-width: 180px;">
+                            <option value="0">-- Không áp dụng --</option>
+                        </select>
+                    </div>
+                    <div class="bill-row">
+                        <span>Tiền giảm:</span>
+                        <span class="text-success fw-bold" id="lblTienGiam">0 đ</span>
+                    </div>
+                    <hr class="my-2" />
+                    <div class="bill-row bill-total">
+                        <span>Thành Tiền:</span>
+                        <span id="lblThanhTien">0 đ</span>
+                    </div>
+                </div>
+                
+                <div class="goimon-actions">
+                    <button class="btn btn-danger" id="btnHuyDon">
+                        <span class="material-symbols-outlined">delete_forever</span> Hủy Đơn
+                    </button>
+                    @*
+                    <a asp-page="/Employee/SoDoBan" class="btn btn-secondary">
+                        <span class="material-symbols-outlined">arrow_back</span> Quay Lại
+                    </a>*@
+                    <button type="button" class="btn btn-secondary" id="btnQuayLai">
+                        <span class="material-symbols-outlined">arrow_back</span> Quay Lại
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Styles {
+    <style>
+        .goimon-layout-container {
+            display: flex;
+            gap: 1.5rem;
+            height: calc(100vh - 100px); /* Chiều cao tối đa */
+        }
+
+        /* Cột 1: Danh Mục */
+        .goimon-danhmuc-list {
+            flex: 0 0 220px;
+            border: none;
+            height: 100%;
+        }
+            .goimon-danhmuc-list .card-body { padding: 0.75rem; }
+            .goimon-danhmuc-list .nav-link {
+                color: var(--cf-brown-dark); font-weight: 600;
+                font-size: 0.95rem; padding: 0.75rem 1.25rem;
+                display: flex; align-items: center; gap: 0.75rem;
+                border-radius: 8px; margin-bottom: 0.25rem;
+                transition: all 0.2s ease-in-out;
+            }
+            .goimon-danhmuc-list .nav-link:hover { background-color: var(--cf-cream); }
+            .goimon-danhmuc-list .nav-link.active {
+                background-color: var(--cf-brown); color: var(--cf-white);
+                box-shadow: 0 4px 12px rgba(111, 78, 55, 0.3);
+            }
+            .goimon-danhmuc-list .nav-link.active .material-symbols-outlined { color: var(--cf-white); }
+            .goimon-danhmuc-list .nav-link .material-symbols-outlined { color: var(--cf-orange); }
+
+        /* Cột 2: Sản Phẩm */
+        .goimon-sanpham-grid {
+            flex: 1;
+            min-width: 0;
+            background: #f9f9f9;
+            border-radius: 8px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .goimon-sanpham-list {
+            overflow-y: auto;
+            flex-grow: 1;
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 1rem;
+            align-content: flex-start;
+        }
+        .product-card {
+            background: var(--cf-white);
+            border-radius: 8px;
+            border: 1px solid var(--cf-gray-light);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px var(--cf-shadow);
+        }
+        .product-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--cf-orange);
+            box-shadow: 0 8px 16px var(--cf-shadow);
+        }
+        .product-card img {
+            width: 100%; height: 100px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+            background: var(--cf-gray-light);
+        }
+        .product-card-body { padding: 0.75rem; }
+        .product-card-name {
+            font-size: 0.9rem; font-weight: 600;
+            color: var(--cf-brown-dark);
+            height: 40px; /* 2 dòng */
+            overflow: hidden;
+        }
+        .product-card-price {
+            font-size: 0.9rem; font-weight: 700;
+            color: var(--cf-orange);
+            margin-top: 4px;
+        }
+
+        /* Cột 3: Hóa Đơn */
+        .goimon-hoadon-panel {
+            flex: 0 0 420px;
+            border: none;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .goimon-hoadon-body {
+            flex-grow: 1;
+            overflow-y: auto;
+            min-height: 0;
+        }
+        .goimon-hoadon-body .table { margin-bottom: 0; }
+        .goimon-hoadon-body .item-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .goimon-hoadon-body .item-note {
+            font-size: 0.8rem;
+            color: #777;
+            font-style: italic;
+        }
+        .goimon-hoadon-body .item-price {
+            font-size: 0.85rem;
+            color: var(--cf-gray);
+        }
+        .goimon-hoadon-body .quantity-control {
+            display: flex;
+            align-items: center;
+        }
+        .goimon-hoadon-body .quantity-control .btn {
+            width: 30px; height: 30px;
+            padding: 0; line-height: 0;
+            font-weight: 600;
+        }
+        .goimon-hoadon-body .quantity-control .quantity-display {
+            width: 35px; text-align: center;
+            font-weight: 600;
+        }
+        
+        .goimon-hoadon-footer {
+            background: var(--cf-white);
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
+            padding: 1rem;
+        }
+        .bill-summary .bill-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+        .bill-summary .bill-row span:first-child { color: var(--cf-gray); }
+        .bill-summary .bill-row span:last-child { font-weight: 600; }
+        .bill-summary .bill-total {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--cf-brown);
+        }
+        .bill-summary .bill-total span:last-child { color: var(--cf-orange); }
+
+        .goimon-actions {
+            margin-top: 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+        .goimon-actions .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            font-weight: 600;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // --- KHỞI TẠO BIẾN TOÀN CỤC ---
+        let _idHoaDon = 0;
+        let _idNhanVien = 0;
+        let _jwtToken = "";
+        const _apiBaseUrl = "http://127.0.0.1:5166/api/web/quanly/goimon";
+
+        let _allSanPhams = [];
+        let _chiTietItems = []; // Lưu dưới dạng Map { idChiTiet: item }
+        let _availableKms = [];
+
+        // --- HÀM TIỆN ÍCH ---
+        function formatCurrency(number) {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(number);
+        }
+        
+        /**
+         * Hàm gọi API chung (lấy từ SoDoBanView)
+         */
+        async function callApi(endpoint, method, data) {
+            if (!_jwtToken) {
+                alert("Lỗi: Không tìm thấy token xác thực.");
+                return null;
+            }
+            try {
+                const response = await fetch(`${_apiBaseUrl}/${endpoint}`, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${_jwtToken}`
+                    },
+                    body: data ? JSON.stringify(data) : null
+                });
+                if (response.status === 401) {
+                    alert("Phiên đăng nhập API đã hết hạn.");
+                    window.location.href = "/account/DangNhapView";
+                    return null;
+                }
+                const contentType = response.headers.get("content-type");
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || `Lỗi ${response.status}`);
+                }
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    return await response.json();
+                } else {
+                    return { success: true, message: await response.text() };
+                }
+            } catch (error) {
+                console.error('Lỗi API:', error);
+                showToast(`Thao tác thất bại: ${error.message}`, 'error');
+                return null;
+            }
+        }
+        
+        // Cải tiến: Dùng Toast thay vì Alert
+        function showToast(message, type = 'success') {
+            // (Tạm thời dùng console.log, bạn có thể thay bằng thư viện toast)
+            if (type === 'error') {
+                console.error(message);
+                alert(message); // Vẫn alert nếu lỗi
+            } else {
+                console.log(message);
+            }
+        }
+
+        // --- CÁC HÀM RENDER UI ---
+
+        function renderDanhMucs(danhMucs) {
+            const $list = $("#category-list");
+            $list.children(".nav-item:not(:first-child)").remove(); // Giữ lại "Tất cả"
+            
+            danhMucs.forEach(dm => {
+                if(dm.idDanhMuc === 0) return; // Bỏ qua nếu là "Tất cả"
+                const $li = $(`
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-id-danhmuc="${dm.idDanhMuc}">
+                            <span class="material-symbols-outlined">label</span>
+                            ${dm.tenLoaiSP}
+                        </a>
+                    </li>
+                `);
+                $list.append($li);
+            });
+        }
+
+        function renderSanPhams(sanPhamList) {
+            const $list = $("#product-list");
+            $list.empty();
+            if (!sanPhamList || sanPhamList.length === 0) {
+                $list.html('<p class="text-muted p-3">Không tìm thấy sản phẩm.</p>');
+                return;
+            }
+            
+            sanPhamList.forEach(sp => {
+                const $card = $(`
+                    <div class="product-card" data-id-sanpham="${sp.idSanPham}">
+                        <img src="${sp.hinhAnh}" alt="${sp.tenSanPham}" />
+                        <div class="product-card-body">
+                            <div class="product-card-name">${sp.tenSanPham}</div>
+                            <div class="product-card-price">${formatCurrency(sp.donGia)}</div>
+                        </div>
+                    </div>
+                `);
+                $card.data('sanpham', sp); // Gắn full data
+                $list.append($card);
+            });
+        }
+
+        function renderChiTiet() {
+            const $body = $("#bill-details-body");
+            $body.empty();
+            if (_chiTietItems.length === 0) {
+                $body.html('<tr><td colspan="3" class="text-center text-muted p-4">Hóa đơn trống</td></tr>');
+                return;
+            }
+            
+            // Sắp xếp theo IdChiTietHoaDon để món mới thêm luôn ở cuối
+            const sortedItems = Object.values(_chiTietItems).sort((a, b) => a.idChiTietHoaDon - b.idChiTietHoaDon);
+
+            sortedItems.forEach(item => {
+                const $tr = $(`
+                    <tr data-id-chitiet="${item.idChiTietHoaDon}">
+                        <td>
+                            <div class="item-name">${item.tenSanPham}</div>
+                            <div class="item-price">${formatCurrency(item.donGia)}</div>
+                            ${item.ghiChu ? `<div class="item-note">Ghi chú: ${item.ghiChu}</div>` : ''}
+                        </td>
+                        <td>
+                            <div class="quantity-control">
+                                <button class="btn btn-outline-danger btn-sm btn-giam-sl" data-id-chitiet="${item.idChiTietHoaDon}">-</button>
+                                <span class="quantity-display">${item.soLuong}</span>
+                                <button class="btn btn-outline-success btn-sm btn-tang-sl" data-id-chitiet="${item.idChiTietHoaDon}">+</button>
+                            </div>
+                        </td>
+                        <td>
+                            <button class="btn btn-link text-danger btn-xoa-mon" data-id-chitiet="${item.idChiTietHoaDon}">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </td>
+                    </tr>
+                `);
+                $body.append($tr);
+            });
+        }
+
+        function updateBillUI(hoaDonInfo) {
+            if (!hoaDonInfo) return;
+
+            $("#lblTieuDeHoaDon").text(`Hóa đơn - ${hoaDonInfo.soBan}`);
+            $("#lblTongTien").text(formatCurrency(hoaDonInfo.tongTienGoc));
+            $("#lblTienGiam").text(formatCurrency(hoaDonInfo.giamGia));
+            $("#lblThanhTien").text(formatCurrency(hoaDonInfo.thanhTien));
+
+            // Cập nhật ComboBox Khuyến mãi
+            const $cbo = $("#cboKhuyenMai");
+            if ($cbo.children().length <= 1) { // Chỉ load 1 lần
+                _availableKms.forEach(km => {
+                    if(km.idKhuyenMai === 0) return;
+                    $cbo.append(`<option value="${km.idKhuyenMai}">${km.tenKhuyenMai}</option>`);
+                });
+            }
+            // Chọn đúng KM đang áp dụng
+            $cbo.val(hoaDonInfo.idKhuyenMai || 0);
+        }
+
+        // --- HÀM XỬ LÝ SỰ KIỆN ---
+
+        async function handleLoadData() {
+            const result = await callApi(`load/${_idHoaDon}`, 'GET');
+            if (result) {
+                _allSanPhams = result.sanPhams;
+                _availableKms = result.khuyenMais;
+                
+                // Chuyển array chi tiết sang Map để truy cập nhanh
+                _chiTietItems = {};
+                result.chiTietItems.forEach(item => {
+                    _chiTietItems[item.idChiTietHoaDon] = item;
+                });
+
+                renderDanhMucs(result.danhMucs);
+                renderSanPhams(_allSanPhams);
+                renderChiTiet();
+                updateBillUI(result.hoaDonInfo);
+            } else {
+                // Nếu load lỗi (ví dụ HĐ đã thanh toán), vô hiệu hóa trang
+                $("#goimon-main-container").find("input, button, select, a").prop("disabled", true);
+            }
+        }
+
+        function handleFilterProduct() {
+            const $link = $(this);
+            const idDanhMuc = $link.data("id-danhmuc");
+
+            $(".goimon-danhmuc-list .nav-link").removeClass("active");
+            $link.addClass("active");
+
+            const keyword = $("#search-bar").val().toLowerCase();
+            
+            let filteredList = _allSanPhams;
+
+            if (idDanhMuc !== 0) {
+                filteredList = filteredList.filter(sp => sp.idDanhMuc == idDanhMuc);
+            }
+            if (keyword) {
+                filteredList = filteredList.filter(sp => sp.tenSanPham.toLowerCase().includes(keyword));
+            }
+
+            renderSanPhams(filteredList);
+        }
+
+        async function handleAddProduct() {
+            const sanPham = $(this).data('sanpham');
+            if (!sanPham) return;
+            
+            // Cho phép nhập ghi chú
+            let ghiChu = prompt(`Thêm ghi chú cho món [${sanPham.tenSanPham}]:`, "");
+            if (ghiChu === null) return; // User bấm Hủy
+
+            const request = {
+                idHoaDon: _idHoaDon,
+                idSanPham: sanPham.idSanPham,
+                soLuong: 1,
+                ghiChu: ghiChu.trim()
+            };
+
+            const result = await callApi('add-item', 'POST', request);
+            if (result && result.updatedHoaDonInfo && result.newItem) {
+                // Cập nhật item mới/hiện có
+                const newItem = result.newItem;
+                _chiTietItems[newItem.idChiTietHoaDon] = newItem;
+
+                renderChiTiet();
+                updateBillUI(result.updatedHoaDonInfo);
+                showToast(`Đã thêm [${newItem.tenSanPham}] và gửi bếp.`);
+            }
+        }
+        
+        async function handleChangeQuantity(idChiTiet, delta) {
+            const item = _chiTietItems[idChiTiet];
+            if (!item) return;
+
+            const soLuongMoi = item.soLuong + delta;
+            
+            const request = {
+                idChiTietHoaDon: item.idChiTietHoaDon,
+                soLuongMoi: soLuongMoi
+            };
+            
+            const hoaDonInfo = await callApi('update-quantity', 'PUT', request);
+            if(hoaDonInfo) {
+                if (soLuongMoi <= 0) {
+                    delete _chiTietItems[item.idChiTietHoaDon];
+                    showToast(`Đã xóa [${item.tenSanPham}] và báo bếp.`);
+                } else {
+                    // Cập nhật lại SL trong bộ nhớ
+                    item.soLuong = soLuongMoi;
+                    item.thanhTien = item.donGia * soLuongMoi;
+                    showToast(`Cập nhật [${item.tenSanPham}] và báo bếp.`);
+                }
+                renderChiTiet();
+                updateBillUI(hoaDonInfo);
+            }
+        }
+
+        async function handleDeleteItem(idChiTiet) {
+            const item = _chiTietItems[idChiTiet];
+            if (!item) return;
+
+            if (!confirm(`Bạn chắc chắn muốn xóa [${item.tenSanPham}]?`)) return;
+
+            const hoaDonInfo = await callApi(`delete-item/${idChiTiet}`, 'DELETE');
+            if(hoaDonInfo) {
+                delete _chiTietItems[item.idChiTietHoaDon];
+                renderChiTiet();
+                updateBillUI(hoaDonInfo);
+                showToast(`Đã xóa [${item.tenSanPham}] và báo bếp.`);
+            }
+        }
+
+        async function handleApplyPromotion() {
+            const idKhuyenMai = $(this).val();
+            
+            const request = {
+                idHoaDon: _idHoaDon,
+                idKhuyenMai: idKhuyenMai == "0" ? null : parseInt(idKhuyenMai)
+            };
+            
+            const hoaDonInfo = await callApi('apply-promotion', 'PUT', request);
+            if(hoaDonInfo) {
+                updateBillUI(hoaDonInfo);
+                showToast("Đã cập nhật khuyến mãi.");
+            }
+        }
+
+        async function handleCancelOrder() {
+            if (!confirm("Bạn có chắc chắn muốn HỦY hóa đơn này không?\nHành động này không thể hoàn tác!")) return;
+            
+            const result = await callApi(`cancel-order/${_idHoaDon}`, 'PUT');
+            if(result) {
+                alert("Đã hủy hóa đơn thành công!");
+                window.location.href = "/Employee/SoDoBan"; // Quay về Sơ đồ bàn
+            }
+        }
+
+
+        // --- KHỞI CHẠY ---
+        $(document).ready(function () {
+            const $container = $("#goimon-main-container");
+            _idHoaDon = $container.data("id-hoadon");
+            _idNhanVien = $container.data("id-nhanvien");
+            _jwtToken = $container.data("jwt-token");
+
+            // Tải dữ liệu
+            handleLoadData();
+
+            // Gắn sự kiện
+            $("#category-list").on("click", ".nav-link", handleFilterProduct);
+            $("#search-bar").on("keyup", handleFilterProduct);
+            $("#product-list").on("click", ".product-card", handleAddProduct);
+            
+            $("#bill-details-body").on("click", ".btn-tang-sl", function() {
+                handleChangeQuantity($(this).data('id-chitiet'), 1);
+            });
+            $("#bill-details-body").on("click", ".btn-giam-sl", function() {
+                handleChangeQuantity($(this).data('id-chitiet'), -1);
+            });
+            $("#bill-details-body").on("click", ".btn-xoa-mon", function() {
+                handleDeleteItem($(this).data('id-chitiet'));
+            });
+
+            $("#cboKhuyenMai").on("change", handleApplyPromotion);
+            $("#btnHuyDon").on("click", handleCancelOrder);
+            $("#btnQuayLai").on("click", function() {
+                window.history.back();
+            });
+        });
+    </script>
+}

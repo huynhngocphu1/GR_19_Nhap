@@ -1,0 +1,19 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "..\\CafebookApi\\CafebookApi.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "..\\WebCafebookApi\\WebCafebookApi.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "AppCafebookApi\\AppCafebookApi.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

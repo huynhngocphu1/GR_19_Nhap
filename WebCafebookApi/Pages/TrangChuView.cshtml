@@ -1,0 +1,166 @@
+﻿@page "/"
+@model WebCafebookApi.Pages.TrangChuViewModel
+@{
+    ViewData["Title"] = "Trang Chủ";
+    var bannerStyle = string.IsNullOrEmpty(Model.Info?.BannerImageUrl)
+        ? "background-color: #4E342E; color: #FFF8E1;"
+        : $"background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('{Model.Info.BannerImageUrl}'); background-size: cover; background-position: center; color: white;";
+}
+
+<div class="container-fluid px-0 mb-5">
+    <div class="text-center p-5" style="@bannerStyle min-height: 40vh; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <h1 class="display-3 fw-bold" style="color: inherit;">
+            @(Model.Info?.TenQuan ?? "Chào mừng đến Cafebook")
+        </h1>
+        <p class="lead fs-4 col-md-8" style="color: inherit; opacity: 0.9;">
+            @(Model.Info?.GioiThieu ?? "Nơi bạn có thể thưởng thức cà phê thơm ngon, đọc những cuốn sách hay và tìm thấy không gian yên tĩnh cho riêng mình.")
+        </p>
+        <div class="mt-4">
+            <a asp-page="/ThucDonView" class="btn btn-primary btn-lg me-2">Xem Thực Đơn</a>
+            <a asp-page="/ThuVienSachView" class="btn btn-outline-light btn-lg">Khám Phá Sách</a>
+        </div>
+    </div>
+</div>
+
+
+<div class="container">
+
+    @if (Model.Promotions != null && Model.Promotions.Any())
+    {
+        <div class="row mt-5 promotion-section">
+            <h2 class="text-center mb-4 pb-2 section-header-alt">
+                <span class="material-symbols-outlined">stars</span> Khuyến Mãi Đặc Biệt <span class="material-symbols-outlined">stars</span>
+            </h2>
+            @foreach (var promo in Model.Promotions)
+            {
+                <div class="col-md-12 promotion-item">
+                    <h5 class="promo-title">@promo.TenKhuyenMai</h5>
+                    <p class="promo-description">@promo.MoTa</p>
+                    <p class="promo-condition">Áp dụng: @promo.dieuKienApDung</p>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="row mt-5">
+        <h2 class="text-center mb-4 pb-2 section-header">
+            <span class="material-symbols-outlined">coffee</span> Món Nổi Bật
+        </h2>
+        @if (Model.MonNoiBat != null && Model.MonNoiBat.Any())
+        {
+            @foreach (var item in Model.MonNoiBat)
+            {
+                <div class="col-lg col-md-4 col-sm-6 mb-4">
+                    <a asp-page="/ChiTietSanPhamView" asp-route-id="@item.IdSanPham" class="text-decoration-none">
+                        <div class="card h-100">
+                            @{
+                                var imgSrc = string.IsNullOrEmpty(item.AnhSanPhamUrl)
+                                ? "/images/default-food-icon.png"
+                                : item.AnhSanPhamUrl;
+                            }
+                            <div class="card-img-container">
+                                <img src="@imgSrc" class="card-img-top" alt="@item.TenSanPham" style="height: 180px; object-fit: cover;">
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <h6 class="card-title text-decoration-none">@item.TenSanPham</h6>
+                                <p class="card-text text-danger fw-bold mt-auto mb-0">@item.DonGia.ToString("N0") đ</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        }
+        else
+        {
+            <p class="text-center text-muted">
+                <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.1rem;">spark</span>
+                Dữ liệu món nổi bật đang được cập nhật...
+            </p>
+        }
+    </div>
+
+    <div class="row mt-5">
+        <h2 class="text-center mb-4 pb-2 section-header">
+            <span class="material-symbols-outlined">auto_stories</span> Sách Hay Nên Đọc
+        </h2>
+        @if (Model.SachNoiBat != null && Model.SachNoiBat.Any())
+        {
+            @foreach (var sach in Model.SachNoiBat)
+            {
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card h-100">
+                        @{
+                            var imgSrc = string.IsNullOrEmpty(sach.AnhBiaUrl)
+                            ? "/images/default-book-cover.png"
+                            : sach.AnhBiaUrl;
+                        }
+                        <div class="card-img-container">
+                            <img src="@imgSrc" class="card-img-top" alt="@sach.TieuDe" style="height: 250px; object-fit: cover;">
+                        </div>
+                        <div class="card-body">
+                            <h6 class="card-title" style="height: 2.5em; overflow: hidden;">@sach.TieuDe</h6>
+                            <p class="card-text text-muted small">@sach.TacGia</p>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 pb-3">
+                            <a asp-page="/ChiTietSachView" asp-route-id="@sach.IdSach" class="btn btn-outline-primary btn-sm w-100">
+                                Xem chi tiết
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <p class="text-center text-muted">
+                <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.1rem;">spark</span>
+                Dữ liệu sách nổi bật đang được cập nhật...
+            </p>
+        }
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="find-space-section card-body">
+                <div class="row">
+                    <div class="col-md-7">
+                        <h2 class="fw-bold">Tìm không gian cho riêng bạn?</h2>
+                        <p class="lead text-muted">
+                            Hiện chúng tôi đang có <strong>@Model.Info?.SoBanTrong bàn trống</strong> sẵn sàng phục vụ.
+                            Và <strong>@Model.Info?.SoSachSanSang đầu sách</strong> đang sẵn sàng để bạn đọc và mượn.
+                        </p>
+                        <a asp-page="/DatBanView" class="btn btn-success btn-lg">
+                            <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 8px;">book_online</span>
+                            Đặt Bàn Ngay
+                        </a>
+                        <p class="text-muted small mt-3">
+                            <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.1rem;">spark</span>
+                            Chức năng xem sơ đồ bàn trực quan đang được cập nhật.
+                        </p>
+                    </div>
+                    <div class="col-md-5 border-start-md contact-info">
+                        <h5 class="fw-bold">Liên hệ nhanh</h5>
+                        <ul class="list-unstyled">
+                            <li><span class="material-symbols-outlined">call</span> @Model.Info?.SoDienThoai</li>
+                            <li><span class="material-symbols-outlined">mail</span> @Model.Info?.EmailLienHe</li>
+                            <li><span class="material-symbols-outlined">schedule</span> @Model.Info?.GioMoCua</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <h2 class="text-center mb-4 pb-2 section-header-alt">
+            Khách Hàng Nói Gì Về Chúng Tôi
+        </h2>
+        <div class="col-12 text-center">
+            <p class="text-muted">
+                <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.1rem;">spark</span>
+                Chức năng hiển thị đánh giá của khách hàng đang được phát triển.
+            </p>
+        </div>
+    </div>
+
+</div>

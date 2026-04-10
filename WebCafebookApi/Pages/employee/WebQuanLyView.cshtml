@@ -1,0 +1,80 @@
+﻿@page "/Employee/Dashboard"
+@model WebCafebookApi.Pages.employee.WebQuanLyViewModel
+@{
+    ViewData["Title"] = "Bảng điều khiển";
+    Layout = "_Layout_Employee";
+
+    var avatarSrc = string.IsNullOrEmpty(Model.DashboardData.AnhDaiDienUrl)
+        ? "/images/default-avatar.png"
+        : Model.DashboardData.AnhDaiDienUrl;
+}
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger">@Model.ErrorMessage</div>
+}
+else
+{
+    <div class="mb-4">
+        <h1 class="page-title">@ViewData["Title"]</h1>
+        <p class="page-lead">Tổng quan hoạt động của quán trong ngày.</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4 col-md-5">
+            <div class="card h-100 product-card">
+                <div class="card-body text-center d-flex flex-column justify-content-center align-items-center p-4">
+                    <img src="@avatarSrc" alt="Avatar" class="rounded-circle mb-3 shadow-sm" style="width: 120px; height: 120px; object-fit: cover;" />
+                    <h3 class="card-title fw-bold mb-1">@Model.DashboardData.HoTen</h3>
+                    <p class="card-text text-muted fs-5 mb-3">@Model.DashboardData.VaiTro</p>
+                    <hr class="w-100" />
+                    <p class="card-text fs-5 mb-0">
+                        <strong class="text-uppercase">Ca làm việc hôm nay:</strong>
+                        <br />
+                        <span class="fw-bold fs-4" style="color: var(--cf-orange);">
+                            @(Model.DashboardData.CaHienTai ?? "...")
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8 col-md-7">
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="stat-card stat-red">
+                        <div class="card-body">
+                            <div class="stat-icon">
+                                <span class="material-symbols-outlined">group</span>
+                            </div>
+                            <div>
+                                <h1 class="display-5 fw-bold mb-0">@Model.DashboardData.TongBanDangPhucVu</h1>
+                                <p class="card-text fs-5 text-muted mb-0">Bàn Đang Phục Vụ</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="stat-card stat-blue">
+                        <div class="card-body">
+                            <div class="stat-icon">
+                                <span class="material-symbols-outlined">receipt_long</span>
+                            </div>
+                            <div>
+                                <h1 class="display-5 fw-bold mb-0">@Model.DashboardData.TongDonDangXuLy</h1>
+                                <p class="card-text fs-5 text-muted mb-0">Đơn Đang Xử Lý</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid">
+                <a asp-page="/Employee/SoDoBanView" class="btn btn-primary btn-lg p-4">
+                    <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 8px;">grid_view</span>
+                    Bắt đầu làm việc (Sơ Đồ Bàn)
+                </a>
+            </div>
+        </div>
+    </div>
+}

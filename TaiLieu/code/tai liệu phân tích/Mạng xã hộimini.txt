@@ -1,0 +1,255 @@
+Tuyệt vời 🔥 — ý tưởng của bạn là muốn **nâng cấp hệ thống Cafebook** (hoặc một phần mở rộng) thành một **mạng xã hội mini**, kiểu như **Facebook Page**, nơi người dùng có thể:
+
+> 📸 Đăng bài viết (ảnh + chữ) → ❤️ Thích → 💬 Bình luận → ↩️ Trả lời bình luận.
+
+Đây là hướng phát triển rất thú vị nếu bạn muốn thêm tính năng **tương tác cộng đồng** cho người dùng (ví dụ: chia sẻ cảm nghĩ về sách, đồ uống, trải nghiệm ở quán, v.v.).
+
+Dưới đây là **bản phân tích chức năng chi tiết (đặc tả nghiệp vụ SRS)** cho hệ thống **“Bảng tin / Trang cộng đồng (Cafebook Social)”** — tương tự Facebook Page.
+
+---
+
+## 🧾 ĐẶC TẢ CHI TIẾT CHỨC NĂNG: MẠNG XÃ HỘI MINI (CAFÉBOOK PAGE)
+
+---
+
+### 🔷 1. Mục tiêu
+
+Tạo không gian cho người dùng đăng bài (ảnh, trạng thái, cảm nghĩ), tương tác qua **thích**, **bình luận**, **trả lời**, giúp tăng sự gắn kết trong cộng đồng Cafébook.
+
+---
+
+### 🔷 2. Chức năng chính
+
+| Mã    | Tên chức năng      | Mô tả ngắn                                                      |
+| ----- | ------------------ | --------------------------------------------------------------- |
+| PS-01 | Đăng bài viết      | Người dùng đăng ảnh, nội dung chữ, hashtag                      |
+| PS-02 | Xem bài viết       | Hiển thị bài viết của tất cả người dùng hoặc theo trang cá nhân |
+| PS-03 | Thích / Bỏ thích   | Người dùng nhấn “Thích” để bày tỏ cảm xúc                       |
+| PS-04 | Bình luận          | Bình luận trực tiếp vào bài viết                                |
+| PS-05 | Trả lời bình luận  | Trả lời một bình luận cụ thể                                    |
+| PS-06 | Quản lý bài đăng   | Xóa / sửa bài viết (chủ bài hoặc admin)                         |
+| PS-07 | Báo cáo / quản trị | Báo cáo bài vi phạm, quản trị viên xử lý                        |
+
+---
+
+## 🧩 3. ĐẶC TẢ CHI TIẾT CHỨC NĂNG
+
+---
+
+### 📝 **PS-01: Đăng bài viết**
+
+#### 🎯 Mục tiêu:
+
+Cho phép người dùng đăng nội dung (ảnh + chữ), chia sẻ cảm xúc, hoặc review sách / đồ uống.
+
+#### 🧑‍💻 Actor:
+
+* **Khách hàng (đã đăng nhập)**: người đăng bài.
+* **Quản trị viên**: có thể chỉnh sửa hoặc xóa bài nếu vi phạm.
+
+#### 🔹 Tiền điều kiện:
+
+* Người dùng **đăng nhập** vào tài khoản (`idKhachHang`).
+* Nội dung bài viết không rỗng.
+
+#### 🔹 Luồng chính:
+
+| Bước | Hành động người dùng                           | Hệ thống xử lý                                   |
+| ---- | ---------------------------------------------- | ------------------------------------------------ |
+| 1    | Mở trang “Cộng đồng” hoặc “Trang cá nhân”      | Hiển thị form đăng bài                           |
+| 2    | Nhập nội dung (chữ, hashtag, upload ảnh/video) | Upload file, xử lý base64 hoặc lưu đường dẫn ảnh |
+| 3    | Nhấn “Đăng”                                    | Lưu vào bảng `BaiViet`, gắn với `idKhachHang`    |
+| 4    | Hệ thống hiển thị bài ngay lập tức             | Refresh trang “Bảng tin”                         |
+
+#### 🔹 Hậu điều kiện:
+
+* Tạo bản ghi mới trong `BaiViet` (đã lưu nội dung + file ảnh).
+* Cập nhật thời gian đăng (`NgayDang = GETDATE()`).
+
+---
+
+### 👀 **PS-02: Xem bài viết**
+
+#### 🎯 Mục tiêu:
+
+Hiển thị danh sách bài viết theo **dòng thời gian (Timeline)** hoặc **trang cá nhân**.
+
+#### 🔹 Luồng:
+
+* Người dùng mở trang “Bảng tin”.
+* Hệ thống truy vấn `SELECT * FROM BaiViet ORDER BY NgayDang DESC`.
+* Hiển thị:
+
+  * Ảnh đại diện người đăng
+  * Tên
+  * Nội dung bài viết
+  * Ảnh đính kèm
+  * Số lượt thích + bình luận.
+
+---
+
+### ❤️ **PS-03: Thích / Bỏ thích**
+
+#### 🎯 Mục tiêu:
+
+Cho phép người dùng tương tác cảm xúc với bài viết.
+
+#### 🔹 Dữ liệu:
+
+Bảng `BaiVietLike`
+
+```sql
+CREATE TABLE BaiVietLike (
+    IdLike INT IDENTITY PRIMARY KEY,
+    IdBaiViet INT,
+    IdKhachHang INT,
+    NgayLike DATETIME DEFAULT GETDATE()
+);
+```
+
+#### 🔹 Luồng:
+
+* Người dùng nhấn nút ❤️ “Thích”.
+* Nếu đã thích → bỏ thích.
+* Hệ thống cập nhật tổng lượt thích bằng `COUNT(*) FROM BaiVietLike`.
+
+---
+
+### 💬 **PS-04: Bình luận**
+
+#### 🎯 Mục tiêu:
+
+Cho phép người dùng viết bình luận dưới bài viết.
+
+#### 🔹 Dữ liệu:
+
+Bảng `BinhLuan`
+
+```sql
+CREATE TABLE BinhLuan (
+    IdBinhLuan INT IDENTITY PRIMARY KEY,
+    IdBaiViet INT,
+    IdKhachHang INT,
+    NoiDung NVARCHAR(MAX),
+    NgayBinhLuan DATETIME DEFAULT GETDATE(),
+    IdCha INT NULL -- Nếu là trả lời thì có IdCha
+);
+```
+
+#### 🔹 Luồng:
+
+| Bước | Hành động                                   | Kết quả              |
+| ---- | ------------------------------------------- | -------------------- |
+| 1    | Người dùng nhập nội dung bình luận          | Gửi lên server       |
+| 2    | Hệ thống lưu vào `BinhLuan`                 | Trả về bình luận mới |
+| 3    | Giao diện hiển thị bình luận theo thời gian |                      |
+
+---
+
+### ↩️ **PS-05: Trả lời bình luận**
+
+* Cũng dùng bảng `BinhLuan`, nhưng có `IdCha` (id của bình luận gốc).
+* Khi hiển thị:
+
+  * Truy vấn bình luận cha (`IdCha IS NULL`)
+  * Sau đó truy vấn con (`WHERE IdCha = @idCha`)
+
+Hiển thị kiểu Facebook nested comment.
+
+---
+
+### ✏️ **PS-06: Quản lý bài đăng**
+
+#### 🎯 Mục tiêu:
+
+Cho phép:
+
+* Người đăng bài: sửa, xóa bài của mình.
+* Admin: xóa bài vi phạm.
+
+#### 🔹 Hành động:
+
+| Tác nhân | Hành động              | Kết quả                                        |
+| -------- | ---------------------- | ---------------------------------------------- |
+| Chủ bài  | Nhấn “Sửa bài”         | Mở form chỉnh nội dung, ảnh                    |
+| Chủ bài  | Nhấn “Xóa bài”         | Bài chuyển trạng thái `DaXoa = 1`              |
+| Admin    | Xóa bài của người khác | Thực hiện lệnh delete hoặc cập nhật trạng thái |
+
+---
+
+### 🚨 **PS-07: Báo cáo bài viết**
+
+#### 🎯 Mục tiêu:
+
+Cho phép người dùng báo cáo bài có nội dung xấu, spam.
+
+#### 🔹 Dữ liệu:
+
+```sql
+CREATE TABLE BaoCaoBaiViet (
+    IdBaoCao INT IDENTITY PRIMARY KEY,
+    IdBaiViet INT,
+    IdKhachHang INT,
+    LyDo NVARCHAR(500),
+    NgayBaoCao DATETIME DEFAULT GETDATE(),
+    TrangThai NVARCHAR(50) DEFAULT 'Chưa xử lý'
+);
+```
+
+---
+
+## 🧱 4. Mô hình dữ liệu (tóm tắt)
+
+| Bảng            | Mô tả                                           |
+| --------------- | ----------------------------------------------- |
+| `BaiViet`       | Thông tin bài đăng (ảnh + nội dung + người tạo) |
+| `BaiVietLike`   | Lượt thích của người dùng                       |
+| `BinhLuan`      | Bình luận và phản hồi                           |
+| `BaoCaoBaiViet` | Báo cáo vi phạm                                 |
+
+---
+
+## 💡 5. Gợi ý giao diện (Razor Pages)
+
+### 🏠 Trang `PageView.cshtml`
+
+* Hiển thị form đăng bài (`textarea`, `upload ảnh`).
+* Danh sách bài viết (ảnh, nội dung, tên, ngày).
+* Dưới mỗi bài: ❤️ Thích | 💬 Bình luận | ↩️ Trả lời.
+
+### 🗨️ Trang `ChiTietBaiViet.cshtml`
+
+* Hiển thị 1 bài cụ thể + bình luận + khung nhập bình luận.
+
+---
+
+## 🚀 6. Mở rộng tính năng (về sau)
+
+* **Hashtag**: lọc bài viết theo chủ đề (#sáchhay, #caphe).
+* **Thông báo (Notification)**: khi ai đó thích / bình luận bài của bạn.
+* **Tải ảnh nhiều file (multi-upload)**.
+* **Tag bạn bè** (`@Tên`) trong bài viết.
+
+---
+
+## ✅ 7. Kết luận thiết kế
+
+| Tiêu chí                    | Mục tiêu        | Tình trạng |
+| --------------------------- | --------------- | ---------- |
+| Đăng bài (ảnh + chữ)        | Cần thiết       | ✅          |
+| Thích / Bình luận / Trả lời | Giống Facebook  | ✅          |
+| Sửa / Xóa bài               | Quản lý cá nhân | ✅          |
+| Báo cáo / Quản trị          | Bảo vệ nội dung | ✅          |
+| CSDL                        | Gọn, dễ mở rộng | ✅          |
+
+---
+
+👉 Nếu bạn muốn, mình có thể giúp bạn **viết bộ code khung MVC đầy đủ** gồm:
+
+* `BaiVietController.cs`
+* `BinhLuanController.cs`
+* `BaiVietDto.cs`
+* `BaiVietView.cshtml` (hiển thị + đăng bài + tương tác)
+
+Tất cả sẵn sàng để bạn **copy vào project ASP.NET Core (Razor Pages)** — chạy như mini Facebook.
+Bạn có muốn mình tạo **bộ code khung và mô hình dữ liệu SQL** cho phần này không?

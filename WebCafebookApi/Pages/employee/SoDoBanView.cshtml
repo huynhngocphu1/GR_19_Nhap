@@ -1,0 +1,643 @@
+﻿@page "/Employee/SoDoBan"
+@model WebCafebookApi.Pages.employee.SoDoBanViewModel
+@{
+    ViewData["Title"] = "Sơ Đồ Bàn";
+    Layout = "_Layout_Employee";
+}
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger">@Model.ErrorMessage</div>
+}
+else
+{
+    <div class="sodoban-layout-container">
+
+        <nav class="sodoban-khuvuc-tabs card">
+            <div class="card-body">
+                <h6 class="px-3 text-muted text-uppercase small">Khu Vực</h6>
+                <ul class="nav flex-column nav-pills">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" data-khuvuc-id="all">
+                            <span class="material-symbols-outlined">apps</span>
+                            Tất cả Khu Vực
+                        </a>
+                    </li>
+                    <li class="nav-item"><hr class="my-1 mx-3"></li>
+                    @foreach (var kv in Model.KhuVucList)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-khuvuc-id="@kv.IdKhuVuc">
+                                <span class="material-symbols-outlined">label</span>
+                                @kv.TenKhuVuc
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </nav>
+
+        <div class="sodoban-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1 class="page-title" style="border: none; margin: 0;">@ViewData["Title"]</h1>
+                <div class="d-none d-md-flex small">
+                    <div class="me-3"><span class="status-box status-trong"></span> Trống</div>
+                    <div class="me-3"><span class="status-box status-co-khach"></span> Có khách</div>
+                    <div class="me-3"><span class="status-box status-da-dat"></span> Đã đặt</div>
+                    <div class="me-3"><span class="status-box status-bao-tri"></span> Bảo trì</div>
+                </div>
+            </div>
+
+            <div id="table-layout-container" class="sodoban-grid" data-nhanvien-id="@Model.NhanVienId">
+                <!-- Bàn sẽ được render bởi JS -->
+            </div>
+        </div>
+
+        <div class="sodoban-panel">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-body p-4">
+
+                    <div id="panel-selection-mode" class="text-center" style="display: none;">
+                        <h5 id="selection-text-header" class="fw-bold">...</h5>
+                        <p class="text-muted small">Vui lòng chọn một bàn trên sơ đồ để tiếp tục.</p>
+                        <hr/>
+                        <button id="btn-cancel-select" class="btn btn-danger w-100">
+                            <span class="material-symbols-outlined">close</span> Hủy Thao Tác
+                        </button>
+                    </div>
+
+                    <div id="panel-no-selection" class="text-center p-4">
+                        <span class="material-symbols-outlined" style="font-size: 48px; color: var(--cf-gray-light);">touch_app</span>
+                        <p class="text-muted mt-2">Chọn một bàn để xem thao tác.</p>
+                    </div>
+
+                    <div id="panel-da-chon" style="display: none;">
+                        <span class="text-muted fw-bold small">Thông Tin Bàn</span>
+                        <h2 class="fw-bold mt-1" style="color: var(--cf-brown);">Bàn <span id="ban-so-ban"></span></h2>
+                        <p id="ban-trang-thai" class="badge bg-success fs-6 mb-2">Trống</p>
+                        
+                        <div id="ban-dat-truoc-group" class="alert alert-warning py-2 px-3 small" style="display:none;">
+                            <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: text-bottom; margin-right: 4px;">bookmark_added</span>
+                            <span id="ban-thong-tin-dat-ban"></span>
+                        </div>
+                        
+                        <div id="ban-ghi-chu-group" class="alert alert-secondary py-2 px-3 small" style="display:none;">
+                            <strong class="text-muted">Ghi chú:</strong>
+                            <p id="ban-ghi-chu" class="fst-italic mb-0" style="color: var(--cf-text);"></p>
+                        </div>
+                         
+                        <div id="ban-tong-tien-group" class="mt-2" style="display:none;">
+                            <span class="text-muted small">Tổng tiền tạm tính:</span>
+                            <h4 id="ban-tong-tien" class="text-danger fw-bold mb-0">0 đ</h4>
+                        </div>
+
+                        <hr class="my-3" />
+
+                        <div class="d-grid gap-2">
+                            <button id="btn-goi-mon-cu" class="btn btn-primary btn-lg p-3">
+                                <span class="material-symbols-outlined">add_shopping_cart</span> 
+                                <span id="btn-goi-mon-text-main">Gọi Món / Thanh Toán</span>
+                            </button>
+                            <div class="row g-2 mt-2">
+                                <div class="col-6 d-grid">
+                                    <button id="btn-chuyen-ban" class="btn btn-outline-secondary p-3">
+                                        <span class="material-symbols-outlined">swap_horiz</span> Chuyển Bàn
+                                    </button>
+                                </div>
+                                <div class="col-6 d-grid">
+                                    <button id="btn-gop-ban" class="btn btn-outline-secondary p-3">
+                                        <span class="material-symbols-outlined">merge_type</span> Gộp Bàn
+                                    </button>
+                                </div>
+                            </div>
+                            <button id="btn-bao-cao-su-co" class="btn btn-outline-warning p-3 mt-2">
+                                <span class="material-symbols-outlined">warning</span> Báo cáo Sự cố
+                            </button>
+                            <button id="refresh-tables-btn" class="btn btn-link text-muted mt-3">
+                                <span class="material-symbols-outlined">refresh</span> Làm mới Sơ đồ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+             </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+<script>
+    // --- KHỞI TẠO BIẾN TOÀN CỤC ---
+    const khuVucData = @Json.Serialize(Model.KhuVucList);
+    const allTables = [];
+    khuVucData.forEach(kv => {
+        if (kv.bans) {
+            allTables.push(...kv.bans);
+        }
+    });
+
+    const apiBaseUrl = "http://localhost:5166/api/web/quanly/sodoban";
+    const currentNhanVienId = $("#table-layout-container").data("nhanvien-id");
+    const jwtToken = @Json.Serialize(Model.JwtToken);
+    
+    let currentSelectedBan = null;
+    let currentMode = "none"; // 'none', 'chuyen', 'gop'
+    let sourceHoaDonId = null;
+
+    // --- HÀM TIỆN ÍCH ---
+    function formatCurrency(number) {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(number);
+    }
+
+    // --- HÀM RENDER VÀ CẬP NHẬT UI ---
+    function renderTables(banList) {
+        const $container = $("#table-layout-container");
+        $container.empty(); 
+
+        if (!banList || banList.length === 0) {
+            $container.append('<p class="text-muted text-center w-100 p-5">Khu vực này không có bàn nào.</p>');
+            return;
+        }
+
+        banList.forEach(ban => {
+            let statusClass = "status-trong";
+            let icon = "event_seat"; // Icon mặc định
+            let infoHtml = `<div class="table-status">${ban.trangThai}</div>`;
+
+            switch (ban.trangThai.toLowerCase()) {
+                case "có khách":
+                    statusClass = "status-co-khach";
+                    icon = "people";
+                    if(ban.tongTien > 0) { 
+                        infoHtml = `<div class="table-status-price">${formatCurrency(ban.tongTien)}</div>`; 
+                    }
+                    break;
+                case "đã đặt":
+                    statusClass = "status-da-dat";
+                    icon = "book_online";
+                    break;
+                case "bảo trì":
+                    statusClass = "status-bao-tri";
+                    icon = "build";
+                    break;
+            }
+            
+            let datBanHtml = '';
+            if (ban.thongTinDatBan && ban.trangThai.toLowerCase() !== 'có khách') { 
+                datBanHtml = `<div class="table-booked-info">${ban.thongTinDatBan}</div>`; 
+            }
+
+            // Gắn data-ban-id (Cách này an toàn 100%)
+            const cardHtml = `
+                <div class="table-card ${statusClass}" data-ban-id="${ban.idBan}">
+                    <div class="table-icon">
+                        <span class="material-symbols-outlined">${icon}</span>
+                    </div>
+                    <h5 class="table-name">${ban.soBan}</h5>
+                    ${infoHtml}
+                    ${datBanHtml}
+                </div>
+            `;
+            const $card = $(cardHtml);
+            
+            // Chúng ta vẫn gắn data-ban-json để dự phòng,
+            // nhưng sẽ ưu tiên dùng allTables.find()
+            $card.data('ban-json', ban); 
+            $container.append($card);
+        });
+    }
+
+    function updatePanel(ban) {
+        // Guard clause: Nếu ban không có data (do lỗi)
+        if (!ban || !ban.soBan) {
+            console.error("Lỗi: Dữ liệu bàn (banData) bị rỗng khi gọi updatePanel.");
+            resetPanel();
+            return;
+        }
+
+        currentSelectedBan = ban;
+        $("#panel-no-selection").hide();
+        $("#panel-selection-mode").hide();
+        $("#panel-da-chon").show();
+
+        $("#ban-so-ban").text(ban.soBan);
+        const $statusBadge = $("#ban-trang-thai");
+        $statusBadge.text(ban.trangThai).removeClass('bg-success bg-danger bg-warning bg-secondary');
+
+        $("#ban-ghi-chu-group, #ban-dat-truoc-group, #ban-tong-tien-group").hide();
+        $("#btn-goi-mon-cu, #btn-chuyen-ban, #btn-gop-ban, #btn-bao-cao-su-co").hide().prop('disabled', false);
+        // Reset lại text nút sự cố
+        $("#btn-bao-cao-su-co").text("Báo cáo Sự cố").prepend('<span class="material-symbols-outlined">warning</span>');
+
+        switch (ban.trangThai.toLowerCase()) {
+            case "trống":
+                $statusBadge.addClass('bg-success');
+                $("#btn-goi-mon-cu").show().find('#btn-goi-mon-text-main').text("Tạo Hóa Đơn Mới");
+                $("#btn-bao-cao-su-co").show();
+                break;
+            case "có khách":
+                $statusBadge.addClass('bg-danger');
+                $("#btn-goi-mon-cu").show().find('#btn-goi-mon-text-main').text("Gọi Món / Thanh Toán");
+                $("#btn-chuyen-ban, #btn-gop-ban, #ban-tong-tien-group").show();
+                $("#ban-tong-tien").text(formatCurrency(ban.tongTien)); 
+                break;
+            case "đã đặt":
+                $statusBadge.addClass('bg-warning');
+                $("#btn-goi-mon-cu").show().find('#btn-goi-mon-text-main').text("Khách đến (Mở Bàn)");
+                $("#btn-bao-cao-su-co").show(); 
+                if (ban.thongTinDatBan) { 
+                    $("#ban-dat-truoc-group").show();
+                    $("#ban-thong-tin-dat-ban").text(ban.thongTinDatBan); 
+                }
+                break;
+            default: // Bảo trì
+                $statusBadge.addClass('bg-secondary');
+                if (ban.ghiChu) { 
+                    $("#ban-ghi-chu-group").show();
+                    $("#ban-ghi-chu").text(ban.ghiChu); 
+                }
+                $("#btn-bao-cao-su-co").show().text("Hủy Bảo Trì").prepend('<span class="material-symbols-outlined">build_circle</span>');
+                break;
+        }
+    }
+
+    function resetPanel() {
+        currentSelectedBan = null;
+        currentMode = "none";
+        sourceHoaDonId = null;
+        $("#panel-no-selection").show();
+        $("#panel-da-chon, #panel-selection-mode").hide();
+        $(".table-card").removeClass("selected dimmed");
+    }
+
+    function startSelectionMode(mode, instructionText) {
+        currentMode = mode;
+        sourceHoaDonId = currentSelectedBan.idHoaDonHienTai; 
+        $("#panel-no-selection, #panel-da-chon").hide();
+        $("#panel-selection-mode").show();
+        $("#selection-text-header").text(instructionText);
+
+        $(".table-card").addClass("dimmed");
+        let $validTargets = (mode === 'chuyen') 
+            ? $(".table-card.status-trong") 
+            : $(".table-card.status-co-khach:not(.selected)");
+        $validTargets.removeClass("dimmed");
+    }
+    
+    // (Hàm callApi không thay đổi)
+    async function callApi(endpoint, method, data) {
+        if (!jwtToken) {
+            alert("Lỗi: Không tìm thấy token xác thực. Vui lòng đăng nhập lại.");
+            window.location.href = "/account/DangNhapView";
+            return null;
+        }
+        try {
+             const response = await fetch(`${apiBaseUrl}/${endpoint}`, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${jwtToken}`
+                },
+                body: data ? JSON.stringify(data) : null
+            });
+            if (response.status === 401) {
+                alert("Phiên đăng nhập API đã hết hạn. Vui lòng đăng nhập lại.");
+                window.location.href = "/account/DangNhapView";
+                return null;
+            }
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || `Lỗi ${response.status}`);
+            }
+            const contentType = response.headers.get("content-type");
+            return (contentType && contentType.includes("application/json"))
+                ? await response.json()
+                : { success: true, message: await response.text() };
+        } catch (error) {
+            console.error('Lỗi API:', error);
+            alert(`Thao tác thất bại: ${error.message}`);
+            return null;
+        }
+    }
+
+    // (Hàm handleTableClick không thay đổi)
+    async function handleTableClick($card, banData) {
+        if (currentMode === "none") {
+            $(".table-card").removeClass("selected");
+            $card.addClass("selected"); 
+            updatePanel(banData);
+        } else {
+            let confirmText = '', apiEndpoint = '', requestData = {};
+            if (currentMode === 'chuyen') {
+                if (banData.trangThai.toLowerCase() !== 'trống') return alert("Bàn đích phải là [Bàn Trống].");
+                confirmText = `Bạn chắc chắn muốn CHUYỂN [${currentSelectedBan.soBan}] sang [${banData.soBan}]?`;
+                apiEndpoint = 'move-table';
+                requestData = { idHoaDonNguon: sourceHoaDonId, idBanDich: banData.idBan };
+            } else if (currentMode === 'gop') {
+                if (banData.trangThai.toLowerCase() !== 'có khách') return alert("Bàn đích phải là [Bàn Có Khách].");
+                if (banData.idBan === currentSelectedBan.idBan) return alert("Không thể gộp bàn vào chính nó.");
+                confirmText = `Bạn chắc chắn muốn GỘP [${currentSelectedBan.soBan}] vào [${banData.soBan}]?`;
+                apiEndpoint = 'merge-table';
+                requestData = { idHoaDonNguon: sourceHoaDonId, idHoaDonDich: banData.idHoaDonHienTai };
+            }
+
+            if (confirm(confirmText)) {
+                const result = await callApi(apiEndpoint, 'POST', requestData);
+                if (result) {
+                    alert(result.message || "Thao tác thành công!");
+                    location.reload(); 
+                }
+            }
+            resetPanel();
+        }
+    }
+
+    // --- SỬA LỖI RACE CONDITION (ICON FONT) + HOT RELOAD ---
+    // Bọc toàn bộ code thực thi trong $(window).on('load')
+    $(window).on('load', function () {
+    
+        // 1. Gắn sự kiện (luôn gắn vào các phần tử tĩnh)
+        $(".sodoban-khuvuc-tabs .nav-link").on("click", function (e) {
+             e.preventDefault();
+            $(".sodoban-khuvuc-tabs .nav-link").removeClass("active");
+            $(this).addClass("active");
+            const khuVucId = $(this).data("khuvuc-id");
+            const banList = (khuVucId === "all") 
+                ? allTables 
+                : (khuVucData.find(kv => kv.idKhuVuc == khuVucId) || {}).bans;
+            renderTables(banList);
+            resetPanel();
+        });
+
+// =================================================================
+        // --- SỬA LỖI HOT RELOAD VÀ RACE CONDITION (Bản cuối) ---
+        // =================================================================
+        $("#table-layout-container").on("click", ".table-card", function () {
+            const $card = $(this);
+            if ($card.hasClass('dimmed')) return;
+
+            // 1. Lấy ID của bàn (luôn luôn đúng)
+            const banId = $card.data('ban-id'); 
+            
+            // 2. Tìm lại (re-find) dữ liệu bàn từ 'khuVucData' GỐC.
+            // Biến 'allTables' đang bị lỗi khi Hot Reload.
+            let banData = null;
+            for (const kv of khuVucData) {
+                // Dùng '==' để so sánh string (từ data-ban-id) và number (từ idBan)
+                banData = kv.bans.find(b => b.idBan == banId);
+                if (banData) break; // Thoát ngay khi tìm thấy
+            }
+            
+            // 3. Gọi hàm
+            handleTableClick($card, banData); 
+        });
+        // =================================================================
+
+        $("#btn-cancel-select").on("click", resetPanel);
+        $("#refresh-tables-btn").on("click", () => location.reload());
+
+        // (Các sự kiện click cho nút trong panel giữ nguyên)
+        $("#btn-goi-mon-cu").on("click", async function () {
+            if (!currentSelectedBan) return;
+            const banStatus = currentSelectedBan.trangThai.toLowerCase();
+            if (banStatus === "có khách") {
+                if (!currentSelectedBan.idHoaDonHienTai) return alert("Lỗi: Bàn này không có hóa đơn hiện tại.");
+                window.location.href = `/Employee/GoiMon?idHoaDon=${currentSelectedBan.idHoaDonHienTai}`;
+            } else if (banStatus === "trống" || banStatus === "đã đặt") {
+                const text = (banStatus === "trống") ? "Tạo Hóa Đơn Mới" : "Khách đến (Mở Bàn)";
+                if (!confirm(`Bạn muốn ${text} cho [${currentSelectedBan.soBan}]?`)) return;
+                const result = await callApi('createorder', 'POST', { idBan: currentSelectedBan.idBan, idNhanVien: currentNhanVienId });
+                if (result && result.idHoaDon) {
+                    window.location.href = `/Employee/GoiMon?idHoaDon=${result.idHoaDon}`;
+                }
+            }
+        });
+
+        $("#btn-bao-cao-su-co").on("click", async function () {
+            if (!currentSelectedBan) return;
+            if (currentSelectedBan.trangThai.toLowerCase() === "bảo trì") {
+                if (!confirm(`Bạn muốn HỦY BẢO TRÌ cho [${currentSelectedBan.soBan}] và chuyển về "Trống"?`)) return;
+                const result = await callApi('reportproblem', 'POST', { idBan: currentSelectedBan.idBan, idNhanVien: currentNhanVienId, ghiChu: "" });
+                if (result) {
+                    alert("Đã hủy bảo trì bàn!");
+                    location.reload();
+                }
+            } else {
+                const ghiChu = prompt(`Vui lòng nhập mô tả sự cố cho [${currentSelectedBan.soBan}]:`);
+                if (ghiChu && ghiChu.trim() !== "") {
+                    const result = await callApi('reportproblem', 'POST', { idBan: currentSelectedBan.idBan, idNhanVien: currentNhanVienId, ghiChu: ghiChu });
+                    if (result) {
+                        alert(result.message || "Báo cáo thành công!");
+                        location.reload();
+                    }
+                }
+            }
+        });
+
+        $("#btn-chuyen-ban").on("click", function() {
+            if (!currentSelectedBan) return;
+            startSelectionMode('chuyen', `Đang Chuyển [${currentSelectedBan.soBan}]`);
+        });
+
+        $("#btn-gop-ban").on("click", function() {
+            if (!currentSelectedBan) return;
+            startSelectionMode('gop', `Đang Gộp [${currentSelectedBan.soBan}]`);
+        });
+
+        // 2. Chạy code render lần đầu *SAU MỘT KHOẢNG TRỄ NHỎ*
+        // Đây là "cú đấm" cuối cùng để diệt lỗi race condition
+        // do Hot Reload gây ra.
+        setTimeout(function() {
+            renderTables(allTables);
+            resetPanel();
+        }, 100); // Trì hoãn 100ms
+
+    }); // <-- Kết thúc $(window).on('load')
+</script>
+}
+
+@section Styles {
+    <style>
+        :root {
+            --cf-brown: #6F4E37;
+            --cf-brown-dark: #4E342E;
+            --cf-orange: #D27D2D;
+            --cf-cream: #FFF8E1;
+            --cf-white: #FFFFFF;
+            --cf-text: #333;
+            --cf-gray: #757575;
+            --cf-gray-light: #EEEEEE;
+            --cf-shadow: rgba(0, 0, 0, 0.1);
+            --cf-status-green: #66BB6A;
+            --cf-status-red: #EF5350;
+            --cf-status-yellow: #FFA726;
+            --cf-status-gray: #BDBDBD;
+        }
+    
+        .sodoban-layout-container {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        /* 1. Tab Khu Vực (Trái) */
+        .sodoban-khuvuc-tabs {
+            flex: 0 0 240px;
+            border: none;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+            .sodoban-khuvuc-tabs .nav-link {
+                color: var(--cf-brown-dark);
+                font-weight: 600;
+                font-size: 0.95rem;
+                padding: 0.75rem 1.25rem;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                border-radius: 8px;
+                margin-bottom: 0.25rem;
+                transition: all 0.2s ease-in-out;
+            }
+                .sodoban-khuvuc-tabs .nav-link .material-symbols-outlined {
+                    color: var(--cf-orange);
+                    font-variation-settings: 'FILL' 0;
+                    transition: all 0.2s ease;
+                }
+            .sodoban-khuvuc-tabs .nav-link:hover {
+                background-color: var(--cf-cream);
+            }
+            .sodoban-khuvuc-tabs .nav-link.active {
+                background-color: var(--cf-brown);
+                color: var(--cf-white);
+                box-shadow: 0 4px 12px rgba(111, 78, 55, 0.3);
+            }
+                /* SỬA LỖI FONT: Xóa 'FILL' 1 để tránh lỗi render */
+                .sodoban-khuvuc-tabs .nav-link.active .material-symbols-outlined {
+                    color: var(--cf-white);
+                    /* font-variation-settings: 'FILL' 1; */ /* <-- Gây lỗi */
+                }
+
+        /* 2. Content (Giữa) */
+        .sodoban-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .sodoban-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        /* 3. Panel (Phải) */
+        .sodoban-panel {
+            flex: 0 0 320px;
+        }
+            .sodoban-panel .card {
+                border: none;
+            }
+            .sodoban-panel .btn {
+                padding-top: 0.75rem;
+                padding-bottom: 0.75rem;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+            }
+            .sodoban-panel .btn .material-symbols-outlined {
+                margin: 0;
+                font-size: 1.25rem;
+            }
+            .sodoban-panel .btn-lg {
+                padding-top: 1rem;
+                padding-bottom: 1rem;
+            }
+
+        /* 4. Thẻ Bàn (Table Card) */
+        .table-card {
+            width: 150px;
+            height: 130px;
+            background: var(--cf-white);
+            border-radius: 8px;
+            border: 1px solid var(--cf-gray-light);
+            border-top: 5px solid;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 0 2px 4px var(--cf-shadow);
+        }
+        .table-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px var(--cf-shadow);
+        }
+        .table-card.selected {
+            border-color: var(--cf-orange) !important;
+            box-shadow: 0 8px 20px rgba(210, 125, 45, 0.5) !important;
+        }
+        .table-card.dimmed {
+            opacity: 0.3;
+            cursor: not-allowed;
+            background-color: var(--cf-gray-light);
+        }
+        /* SỬA LỖI FONT: Xóa 'FILL' 1 để tránh lỗi render */
+        .table-card .table-icon .material-symbols-outlined {
+            font-size: 28px;
+            /* font-variation-settings: 'FILL' 1; */ /* <-- Gây lỗi */
+            margin-bottom: 8px;
+        }
+        .table-card .table-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--cf-brown-dark);
+            margin: 0;
+        }
+        .table-card .table-status {
+            font-size: 0.8rem;
+            color: var(--cf-gray);
+        }
+        .table-card .table-status-price {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--cf-status-red);
+            margin-top: 4px;
+        }
+        .table-card .table-booked-info {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--cf-status-yellow);
+            text-align: center;
+        }
+
+        /* Trạng thái thẻ bàn */
+        .table-card.status-trong { border-top-color: var(--cf-status-green); }
+        .table-card.status-trong .table-icon { color: var(--cf-status-green); }
+        
+        .table-card.status-co-khach { border-top-color: var(--cf-status-red); }
+        .table-card.status-co-khach .table-icon { color: var(--cf-status-red); }
+
+        .table-card.status-da-dat { border-top-color: var(--cf-status-yellow); }
+        .table-card.status-da-dat .table-icon { color: var(--cf-status-yellow); }
+
+        .table-card.status-bao-tri { border-top-color: var(--cf-status-gray); opacity: 0.7; }
+        .table-card.status-bao-tri .table-icon { color: var(--cf-status-gray); }
+
+        /* Chú thích trạng thái */
+        .status-box {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+        .status-box.status-trong { background-color: var(--cf-status-green); }
+        .status-box.status-co-khach { background-color: var(--cf-status-red); }
+        .status-box.status-da-dat { background-color: var(--cf-status-yellow); }
+        .status-box.status-bao-tri { background-color: var(--cf-status-gray); }
+    </style>
+}

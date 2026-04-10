@@ -1,0 +1,148 @@
+﻿@page
+@model WebCafebookApi.Pages.LienHeViewModel
+@{
+    ViewData["Title"] = "Liên Hệ";
+}
+
+@* Thêm Font Awesome (nếu _Layout chưa có) *@
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+}
+
+<style>
+    .contact-icon {
+        font-size: 1.5rem;
+        color: var(--bs-primary, #0d6efd);
+        width: 40px; /* Căn chỉnh icon */
+    }
+
+    .contact-info li {
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+    }
+
+    .social-icon {
+        font-size: 1.75rem;
+        color: #333;
+        transition: color .2s;
+    }
+
+        .social-icon:hover {
+            color: var(--bs-primary, #0d6efd);
+        }
+</style>
+
+<div class="container mt-5">
+    <div class="text-center mb-5">
+        <h1>Liên Hệ Với Chúng Tôi</h1>
+        <p class="lead">Cafebook luôn sẵn sàng lắng nghe bạn. Đừng ngần ngại gửi phản hồi hoặc ghé thăm chúng tôi!</p>
+    </div>
+
+    <div class="row g-5">
+        <div class="col-lg-5">
+            <h3 class="mb-4">Thông Tin Chung</h3>
+
+            <p>
+                @(Model.Info.GioiThieu ?? "⚙️ Thông tin giới thiệu đang được cập nhật...")
+            </p>
+
+            <ul class="list-unstyled contact-info mt-4">
+                <li class="d-flex align-items-start">
+                    <i class="fas fa-map-marker-alt contact-icon text-center me-3"></i>
+                    <span>@(Model.Info.DiaChi ?? "⚙️ Địa chỉ đang cập nhật...")</span>
+                </li>
+                <li class="d-flex align-items-start">
+                    <i class="fas fa-phone contact-icon text-center me-3"></i>
+                    <span>@(Model.Info.SoDienThoai ?? "⚙️ SĐT đang cập nhật...")</span>
+                </li>
+                <li class="d-flex align-items-start">
+                    <i class="fas fa-envelope contact-icon text-center me-3"></i>
+                    <span>@(Model.Info.EmailLienHe ?? "⚙️ Email đang cập nhật...")</span>
+                </li>
+                <li class="d-flex align-items-start">
+                    <i class="fas fa-clock contact-icon text-center me-3"></i>
+                    <span>@(Model.Info.GioMoCua ?? "⚙️ Giờ mở cửa đang cập nhật...")</span>
+                </li>
+            </ul>
+
+            <h5 class="mt-4">Theo dõi chúng tôi</h5>
+            <div class="mt-3">
+                @if (!string.IsNullOrWhiteSpace(Model.Info.LinkFacebook))
+                {
+                    <a href="@Model.Info.LinkFacebook" class="social-icon me-3" target="_blank" rel="noopener noreferrer" title="Facebook"><i class="fab fa-facebook-square"></i></a>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.Info.LinkInstagram))
+                {
+                    <a href="@Model.Info.LinkInstagram" class="social-icon me-3" target="_blank" rel="noopener noreferrer" title="Instagram"><i class="fab fa-instagram-square"></i></a>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.Info.LinkZalo))
+                {
+                    <a href="@Model.Info.LinkZalo" class="social-icon me-3" target="_blank" rel="noopener noreferrer" title="Zalo">
+                        <i class="fa-solid fa-comment"></i>
+                        <small style="font-size: 0.5em; vertical-align: top;">Zalo</small>
+                    </a>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.Info.LinkYoutube))
+                {
+                    <a href="@Model.Info.LinkYoutube" class="social-icon" target="_blank" rel="noopener noreferrer" title="Youtube"><i class="fab fa-youtube-square"></i></a>
+                }
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <h3 class="mb-4">Tìm Chúng Tôi</h3>
+            <div class="card shadow-sm mb-4" style="height: 300px;">
+                @if (string.IsNullOrWhiteSpace(Model.Info.LinkGoogleMapsEmbed))
+                {
+                    <div class="card-body d-flex align-items-center justify-content-center text-muted">
+                        ⚙️ Bản đồ đang được cập nhật...
+                    </div>
+                }
+                else
+                {
+                    <iframe src="@Model.Info.LinkGoogleMapsEmbed"
+                            height="300" style="border:0; width:100%;"
+                            allowfullscreen="" loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade"></iframe>
+                }
+            </div>
+
+            <h3 class="mb-4">Gửi Góp Ý</h3>
+            @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+            {
+                <div class="alert alert-success">@Model.SuccessMessage</div>
+            }
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="alert alert-danger">@Model.ErrorMessage</div>
+            }
+
+            <form method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="PhanHoiInput.Ten" class="form-label">Tên của bạn <span class="text-danger">*</span></label>
+                        <input type="text" asp-for="PhanHoiInput.Ten" class="form-control" />
+                        <span asp-validation-for="PhanHoiInput.Ten" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="PhanHoiInput.Email" class="form-label">Email <span class="text-danger">*</span></label>
+                        <input type="email" asp-for="PhanHoiInput.Email" class="form-control" />
+                        <span asp-validation-for="PhanHoiInput.Email" class="text-danger small"></span>
+                    </div>
+                    <div class="col-12">
+                        <label asp-for="PhanHoiInput.NoiDung" class="form-label">Nội dung <span class="text-danger">*</span></label>
+                        <textarea asp-for="PhanHoiInput.NoiDung" class="form-control" rows="5"></textarea>
+                        <span asp-validation-for="PhanHoiInput.NoiDung" class="text-danger small"></span>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">Gửi Phản Hồi</button>
+                <p class="text-muted small mt-2">⚙️ Tính năng này đang được cập nhật. Phản hồi của bạn sẽ được ghi lại trong log hệ thống.</p>
+            </form>
+
+        </div>
+    </div>
+</div>

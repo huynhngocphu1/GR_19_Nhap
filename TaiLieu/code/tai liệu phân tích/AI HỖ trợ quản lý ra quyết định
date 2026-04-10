@@ -1,0 +1,264 @@
+Tuyệt — mình sẽ viết **bản đặc tả / thiết kế chức năng chi tiết** cho **“Chat hỗ trợ ra quyết định (Decision-Support Chat)”** tích hợp vào hệ thống, kèm **app WPF dành cho quản lý** có quyền phân tích CSDL toàn diện. Tài liệu này sẽ bao gồm: mục tiêu, kiến trúc, tính năng, quyền & bảo mật, luồng dữ liệu, ví dụ truy vấn & mẫu prompt cho chat, báo cáo đầu ra, và khuyến nghị triển khai.
+
+> LƯU Ý QUAN TRỌNG: khi bạn nói “app WPF có Toàn quyền phân tích CSDL”, đó là quyền lớn — mình sẽ trình bày cả **biện pháp an toàn** và **khuyến nghị áp dụng nguyên tắc least-privilege** để tránh rủi ro (xóa nhầm, lộ dữ liệu).
+
+---
+
+# 1 — Mục tiêu chức năng
+
+* Cung cấp **chat tương tác (AI + con người)** giúp **tổng hợp, phân tích, đưa gợi ý quyết định** cho quản lý (bán hàng, tồn kho, giao hàng, chất lượng dịch vụ, đánh giá khách).
+* Chat nhận truy vấn bằng ngôn ngữ tự nhiên (VN/EN), trả về:
+
+  * Tóm tắt KPI (Doanh thu, Đơn thành công, Tỉ lệ giao thành công, Đánh giá trung bình...)
+  * Nguyên nhân khả dĩ (ví dụ: giảm doanh thu do thiếu món A)
+  * Gợi ý hành động ưu tiên (ví dụ: tăng nhân viên giao ở khu X, khuyến mãi sách B)
+  * Các biểu đồ / bảng số liệu và truy vấn SQL tham chiếu.
+* App WPF cho quản lý: giao diện chat + dashboard phân tích + công cụ chạy truy vấn SQL/Report, tải báo cáo, lịch báo cáo tự động.
+
+---
+
+# 2 — Kiến trúc hệ thống (tổng quan)
+
+1. **Frontend**
+
+   * Web chat (trung tâm hỗ trợ) và **App WPF** (quản lý).
+   * WPF kết nối tới Backend qua API + (tuỳ chọn) kết nối trực tiếp DB read-only cho phân tích nâng cao.
+2. **Backend**
+
+   * API service (ASP.NET Core) xử lý:
+
+     * Định tuyến chat → AI service (GPT/Local) → logic quyết định.
+     * Thực thi truy vấn đã phê duyệt, chuẩn hóa kết quả.
+     * Quản lý báo cáo, lịch, audit logs.
+   * Service xử lý ETL / Data Warehouse (tích hợp nếu cần).
+3. **AI layer**
+
+   * Model LLM (OpenAI / Enterprise / on-prem) + các prompt template.
+   * Module reasoning: chuyển yêu cầu ngôn ngữ tự nhiên thành truy vấn SQL / phân tích thống kê.
+4. **Database**
+
+   * OLTP (CAFEBOOKDB_v2) + (tùy chọn) Data Warehouse / Reporting DB (tối ưu cho phân tích).
+5. **Realtime**
+
+   * SignalR cho thông báo, cập nhật trạng thái, báo cáo streaming.
+6. **Auth & Audit**
+
+   * OAuth/JWT + RBAC; audit log mọi truy vấn & hành động.
+
+---
+
+# 3 — Tính năng chi tiết
+
+## 3.1 Chat hỗ trợ ra quyết định (AI Chat)
+
+* Nhận truy vấn NL tự nhiên: “So sánh doanh thu tuần này vs tuần trước”, “Top 5 sách thuê nhiều nhất tháng 10”, “Có bao nhiêu đơn giao thất bại trong quận X?”
+* Khả năng:
+
+  * trả kết quả dạng text tóm tắt + bảng nhỏ + gợi ý hành động;
+  * khi cần: sinh SQL tương ứng và (nếu user cho phép) chạy query và trả dữ liệu;
+  * hiển thị biểu đồ (bar/line/pie) trên WPF;
+  * liên kết tới nguồn (ví dụ: “Dữ liệu từ bảng HoaDon, khoảng 2025-10-01..2025-10-31”).
+* Fallback: nếu AI không tin cậy (confidence thấp hoặc yêu cầu can thiệp), chuyển sang **nhân viên phân tích**.
+
+## 3.2 App WPF — Dashboard & Query Console
+
+* **Tab Chat**: giao tiếp với AI, lưu lịch sử chat (có export PDF).
+* **Tab Dashboard**: KPI realtime — Doanh thu (hôm nay / tuần / tháng), Đơn hàng (chờ/đang/hoàn tất), Tỉ lệ giao thành công, Đánh giá trung bình (sách/món), tồn kho cảnh báo.
+* **Tab Reports**: chạy báo cáo có sẵn (Daily Sales, Top Items, Inventory Alerts), lịch chạy tự động, download CSV/PDF.
+* **Tab Query Console**: cho phép quản lý/analyst viết SQL, preview, chạy. *PHẢI có chế độ phê duyệt hoặc role đặc biệt.*
+* **Tab Alerts**: danh sách cảnh báo tự động (tồn kho thấp, tăng tỉ lệ trả/không hài lòng).
+* **Tab Audit**: xem lịch sử truy vấn chat, truy vấn SQL đã chạỵ, ai đã làm gì.
+
+## 3.3 Quy trình “AI đề xuất → Người quyết định”
+
+* AI đưa gợi ý (ví dụ: “Giảm tồn kho sách X: coi xét đặt hàng 50 cuốn”).
+* Quản lý có nút **Phê duyệt / Hoãn / Từ chối**.
+* Hành động phê duyệt có thể trigger: tạo đơn đặt hàng nhà cung cấp, yêu cầu nhập kho, tạo khuyến mãi.
+
+---
+
+# 4 — Quyền & Bảo mật (quan trọng)
+
+## 4.1 Principleast-privilege
+
+* **Không cấp “Toàn quyền” trực tiếp cho app** trên DB sản xuất. Thay vào đó:
+
+  * Tạo role riêng `analyst` / `manager` với quyền SELECT trên các view/các schema báo cáo.
+  * Nếu cần UPDATE/DELETE: chỉ có 1-2 tài khoản admin (và phải đi qua workflow phê duyệt).
+* **Nếu khẳng định muốn "Toàn quyền"** thì cần:
+
+  * Audit log chi tiết, multi-factor auth, ghi nhật ký mọi truy vấn & hành động xóa/cập nhật.
+  * Cơ chế rollback (backup) hoặc sandbox DB.
+
+## 4.2 Bảo mật giao tiếp
+
+* TLS cho API & DB connection.
+* Mã hoá sensitive data (PII) trong DB hoặc mask trước khi hiển thị.
+* Token expiry; session timeout.
+
+## 4.3 Audit & Compliance
+
+* Lưu `AuditLog` cho: userId, action, time, SQL executed, result summary, traceId.
+* Cảnh báo khi query có pattern rủi ro (DROP/DELETE không có WHERE).
+
+---
+
+# 5 — Thiết kế dữ liệu & Views đề xuất
+
+> Khuyến nghị: **không chạy phân tích trực tiếp trên OLTP** — nên build các VIEW báo cáo hoặc DW.
+
+## 5.1 View báo cáo mẫu (SQL pseudo)
+
+### Doanh thu theo ngày (30 ngày)
+
+```sql
+CREATE VIEW v_DailySales AS
+SELECT CAST(thoiGianTao AS date) AS Ngay,
+       SUM(COALESCE(thanhTien,0)) AS DoanhThu
+FROM HoaDon
+WHERE thoiGianTao >= DATEADD(day, -30, GETDATE())
+GROUP BY CAST(thoiGianTao AS date);
+```
+
+### Top 10 sách được thuê (tháng)
+
+```sql
+CREATE VIEW v_TopBooksMonthly AS
+SELECT s.idSach, s.tenSach, COUNT(*) AS SoLuotThue
+FROM ChiTietPhieuThue ct
+JOIN PhieuThueSach p ON ct.idPhieuThueSach = p.idPhieuThueSach
+JOIN Sach s ON ct.idSach = s.idSach
+WHERE p.ngayThue BETWEEN @Start AND @End
+GROUP BY s.idSach, s.tenSach
+ORDER BY SoLuotThue DESC;
+```
+
+### Tỉ lệ giao thành công theo khu vực
+
+```sql
+-- assumes HoaDon.TrangThaiGiaoHang, HoaDon.DiaChiGiaoHang có thể phân vùng
+SELECT KhuVuc, 
+       COUNT(*) AS Tong,
+       SUM(CASE WHEN TrangThaiGiaoHang = 'Đã giao' THEN 1 ELSE 0 END) AS DaGiao
+FROM HoaDon
+GROUP BY KhuVuc;
+```
+
+## 5.2 Bảng Audit mẫu
+
+```sql
+CREATE TABLE AuditLog (
+    Id INT IDENTITY PRIMARY KEY,
+    UserId INT,
+    Action NVARCHAR(200),
+    SqlText NVARCHAR(MAX),
+    Parameters NVARCHAR(MAX),
+    ResultSummary NVARCHAR(500),
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+```
+
+---
+
+# 6 — Mẫu prompt & workflow chuyển thành SQL
+
+## 6.1 Mẫu prompt cho LLM (để sinh SQL)
+
+> “Bạn là trợ lý phân tích dữ liệu. Từ CSDL CAFEBOOKDB_v2, hãy viết SQL trả về top 5 sách thuê nhiều nhất tháng 10/2025 (kết quả có cột: idSach, tenSach, soLuotThue). Chỉ trả phần SQL, không giải thích.”
+
+**LLM output (ví dụ)** — kiểm tra & phê duyệt trước khi chạy.
+
+## 6.2 Workflow an toàn khi chạy SQL do AI tạo
+
+1. AI sinh SQL.
+2. Hiển thị SQL cho user/analyst kèm estimate rows/impact.
+3. **User phê duyệt (button “Run”)** → backend chạy trong sandbox (time limit, row limit).
+4. Kết quả trả về + lưu audit.
+
+---
+
+# 7 — UI chi tiết cho WPF (gợi ý)
+
+## Layout chính
+
+* Left pane: Menu (Chat, Dashboard, Reports, Query Console, Alerts, Audit, Settings)
+* Top: Search/KPI quick cards (TotalSalesToday, OrdersToday, PendingDelivery)
+* Center:
+
+  * Chat window (bóng chat, khả năng attach screenshot, select scope: toàn DB / chỉ sales / chỉ giao hàng)
+  * Khi chat hỏi số liệu → show card kết quả + nút “Xem chi tiết / Run SQL / Export CSV”
+* Right pane: Alerts & Recent Activity
+
+## Components đặc biệt
+
+* **Query Console**: code editor (syntax SQL), Run, Explain Plan, RowLimit, Download.
+* **Report Scheduler**: chọn report, schedule (daily/weekly), recipients (email).
+* **Role switch**: nếu user là admin, bật tính năng write (update/insert).
+
+---
+
+# 8 — Tích hợp với hệ thống hiện có (Cafebook)
+
+* Dùng views để expose dữ liệu: `v_DailySales`, `v_TopBooksMonthly`, `v_CustomerSatisfaction`.
+* Chat service gọi endpoint backend: `/api/ai/query` (POST { userId, prompt, scope }).
+* SignalR để notify WPF/WEB khi báo cáo hoàn thành.
+* Ghi audit âm thầm cho mọi yêu cầu phân tích.
+
+---
+
+# 9 — Ví dụ kịch bản (end-to-end)
+
+**Yêu cầu:** Quản lý hỏi: “Trong 30 ngày qua, 5 khu vực có tỉ lệ giao thất bại cao nhất là gì? Gợi ý 2 hành động giảm tỉ lệ đó.”
+
+Flow:
+
+1. Quản lý gõ câu hỏi vào Chat WPF.
+2. LLM trả: (a) SQL để lấy tỉ lệ; (b) tóm tắt bằng văn bản + 2 gợi ý hành động.
+3. Hệ thống hiển thị bảng kết quả + biểu đồ map/hist.
+4. Quản lý nhấn “Phê duyệt hành động” → tạo task cho đội giao hàng & CSKH.
+
+---
+
+# 10 — Báo cáo & KPIs đề xuất (cần theo dõi)
+
+* Doanh thu hàng ngày/tuần/tháng.
+* Số đơn / tỉ lệ hoàn tất / tỉ lệ giao thất bại.
+* Thời gian trung bình giao đơn.
+* Top sách & top món (theo doanh thu & lượt).
+* Tồn kho cảnh báo (sách/sản phẩm).
+* CSAT (đánh giá khách hàng) trung bình theo loại.
+* Số yêu cầu hỗ trợ (AI xử lý vs chuyển nhân viên).
+
+---
+
+# 11 — Rủi ro & khuyến nghị vận hành
+
+* **Rủi ro tấn công / sai lệnh SQL**: phải có giới hạn row/timeout & audit.
+* **Rủi ro rò rỉ PII**: mask thông tin (SĐT, email) theo role.
+* **Rủi ro AI sai/nhầm**: luôn hiển thị nguồn số liệu + SQL đã chạy; chỉ cho AI đề xuất, không tự động làm hành động thay con người trừ khi có workflow phê duyệt.
+* **Sao lưu & backup**: backup định kỳ trước khi cho phép cập nhật mạnh.
+
+---
+
+# 12 — Các bước triển khai (gợi ý roadmap)
+
+1. Thiết kế Views/Reporting DB & tạo các view cơ bản.
+2. Xây API AI service: prompt templates + safety checks.
+3. Xây app WPF UI skeleton (Chat + Dashboard + Query Console).
+4. Thêm RBAC và audit.
+5. Bổ sung scheduler & export.
+6. Test (security pen test) → Deploy.
+
+---
+
+# 13 — Bạn muốn mình làm gì tiếp?
+
+Mình có thể tiếp tục và làm 1 (chọn 1 hoặc nhiều):
+
+* A. Viết **API spec** (Swagger-style endpoints) cho service AI & query.
+* B. Viết **mẫu SQL** cho các view KPI (DailySales, TopBooks, DeliveryFailureByArea, CSAT).
+* C. Viết **mẫu code**: ASP.NET Core endpoint + sample prompt template + mã gọi OpenAI (pseudo).
+* D. Viết **mẫu WPF XAML + ViewModel** cho giao diện Chat + Query Console.
+* E. Viết **mẫu StoredProcedure** và `sp_RunSafely` wrapper (row limit, timeout) để chạy SQL do AI sinh.
+
+Bạn chọn chữ cái (A–E) mình làm tiếp phần cụ thể cho bạn luôn.

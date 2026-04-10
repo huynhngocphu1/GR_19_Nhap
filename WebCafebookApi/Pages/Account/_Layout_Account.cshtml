@@ -1,0 +1,66 @@
+﻿@* Tập tin: WebCafebookApi/Pages/Account/_Layout_Account.cshtml *@
+@{
+    Layout = "_Layout";
+    string? CurrentPage()
+    {
+        return ViewContext.RouteData.Values["page"]?.ToString();
+    }
+}
+
+<div class="container mt-5">
+    <div class="main-content-card">
+        <div class="account-layout-container">
+
+            <div class="account-sidebar">
+                <nav class="nav flex-column nav-pills">
+
+                    <a class="nav-link @(CurrentPage() == "/Account/TaiKhoanTongQuanView" ? "active" : "")"
+                       asp-page="/Account/TaiKhoanTongQuanView">
+                        <span class="material-symbols-outlined">person</span>
+                        Tài khoản của tôi
+                    </a>
+                    <a class="nav-link @(CurrentPage() == "/Account/ThongTinCaNhanView" ? "active" : "")"
+                       asp-page="/Account/ThongTinCaNhanView">
+                        <span class="material-symbols-outlined">badge</span>
+                        Hồ sơ
+                    </a>
+                    <a class="nav-link @(CurrentPage() == "/Account/DoiMatKhauView" ? "active" : "")"
+                       asp-page="/Account/DoiMatKhauView">
+                        <span class="material-symbols-outlined">lock</span>
+                        Đổi mật khẩu
+                    </a>
+                    <a class="nav-link @(CurrentPage() == "/Account/LichSuDatBanView" ? "active" : "")"
+                       asp-page="/Account/LichSuDatBanView">
+                        <span class="material-symbols-outlined">event_list</span>
+                        Lịch sử đặt bàn
+                    </a>
+                    <a class="nav-link @(CurrentPage() == "/Account/LichSuThueSachView" ? "active" : "")"
+                       asp-page="/Account/LichSuThueSachView">
+                        <span class="material-symbols-outlined">menu_book</span>
+                        Lịch sử thuê sách
+                    </a>
+
+                    <a class="nav-link @(CurrentPage() == "/Account/LichSuDonHangView" ? "active" : "")"
+                       asp-page="/Account/LichSuDonHangView">
+                        <span class="material-symbols-outlined">receipt_long</span>
+                        Lịch sử mua hàng
+                    </a>
+
+                </nav>
+            </div>
+
+            <div class="account-content">
+                @RenderBody()
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await RenderSectionAsync("Scripts", required: false)
+}
+
+@section Styles {
+    @await RenderSectionAsync("Styles", required: false)
+}

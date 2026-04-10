@@ -1,0 +1,157 @@
+﻿<Window x:Class="AppCafebookApi.View.common.ChonKhuyenMaiWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AppCafebookApi.View.common"
+        mc:Ignorable="d"
+        Title="Chọn Khuyến Mãi Áp Dụng" 
+        Height="600" Width="450"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="ToolWindow"
+        FontFamily="Segoe UI"
+        Loaded="Window_Loaded"
+        Background="#FFF8E1">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="PrimaryBrownBrush" Color="#6F4E37"/>
+        <SolidColorBrush x:Key="DarkBrownBrush" Color="#4E342E"/>
+        <SolidColorBrush x:Key="AccentOrangeBrush" Color="#D27D2D"/>
+        <SolidColorBrush x:Key="TextGrayBrush" Color="#757575"/>
+        <SolidColorBrush x:Key="StatusRedBrush" Color="#EF5350"/>
+        <SolidColorBrush x:Key="StatusGreenBrush" Color="#66BB6A"/>
+
+        <Style x:Key="KhuyenMaiItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderThickness" Value="3,0,0,0"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentOrangeBrush}"/>
+
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsEligible}" Value="False">
+                    <Setter Property="IsEnabled" Value="False"/>
+                    <Setter Property="BorderBrush" Value="#BDBDBD"/>
+                    <Setter Property="Opacity" Value="0.6"/>
+                </DataTrigger>
+                <Trigger Property="IsSelected" Value="true">
+                    <Setter Property="Background" Value="#FFF1DE"/>
+                    <Setter Property="BorderBrush" Value="#D27D2D"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ActionButton" TargetType="Button">
+            <Setter Property="Padding" Value="15"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBox x:Name="txtSearch" 
+                 FontSize="14" 
+                 Padding="10" Margin="10" 
+                 TextChanged="TxtSearch_TextChanged"
+                 Text="Nhập mã hoặc tên KM..."/>
+
+        <ListBox Grid.Row="1" x:Name="lvKhuyenMai" 
+                 HorizontalContentAlignment="Stretch"
+                 SelectionMode="Single"
+                 SelectedValuePath="IdKhuyenMai"
+                 ItemContainerStyle="{StaticResource KhuyenMaiItemStyle}"
+                 Background="Transparent" BorderThickness="0">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding TenChuongTrinh}" 
+                                       FontSize="16" FontWeight="Bold" 
+                                       Foreground="{StaticResource DarkBrownBrush}"/>
+                            <TextBlock Text="{Binding MaKhuyenMai, StringFormat=' ({0})'}" 
+                                       FontSize="14" FontStyle="Italic" VerticalAlignment="Bottom"
+                                       Margin="5,0,0,0"
+                                       Foreground="{StaticResource AccentOrangeBrush}"/>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="1" Text="{Binding DieuKienApDung}" 
+                                   TextWrapping="Wrap" 
+                                   FontSize="13"
+                                   Foreground="{StaticResource TextGrayBrush}"/>
+
+                        <TextBlock Grid.Row="2" Text="{Binding IneligibilityReason}" 
+                                   TextWrapping="Wrap" 
+                                   FontSize="13" FontWeight="SemiBold"
+                                   Margin="0,5,0,0"
+                                   Foreground="{StaticResource StatusRedBrush}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsEligible}" Value="False">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+
+                        <Border CornerRadius="0,5,0,5" 
+                                Background="{StaticResource StatusGreenBrush}" 
+                                HorizontalAlignment="Right" 
+                                VerticalAlignment="Top"
+                                Margin="0,-10,-15,0"
+                                Padding="8,3">
+                            <TextBlock Text="Có thể áp dụng" Foreground="White" FontSize="10" FontWeight="Bold"/>
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsEligible}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                        </Border>
+
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <Border Grid.Row="2" Background="White" Padding="10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button x:Name="btnHuy" Content="Hủy" 
+                        Click="BtnHuy_Click" 
+                        Style="{StaticResource ActionButton}" 
+                        Background="{StaticResource TextGrayBrush}" 
+                        Margin="0,0,5,0"/>
+                <Button x:Name="btnApDung" Grid.Column="1" Content="Áp Dụng" 
+                        Click="BtnApDung_Click" 
+                        Style="{StaticResource ActionButton}" 
+                        Background="{StaticResource PrimaryBrownBrush}" 
+                        Margin="5,0,0,0"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

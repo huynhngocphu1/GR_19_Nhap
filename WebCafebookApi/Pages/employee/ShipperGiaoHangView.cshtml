@@ -1,0 +1,368 @@
+﻿@page "/Employee/ShipperGiaoHangView"
+@model WebCafebookApi.Pages.employee.ShipperGiaoHangViewModel
+@{
+    ViewData["Title"] = "Ứng dụng Shipper";
+    Layout = "_Layout_Employee";
+}
+
+@section Styles {
+    <style>
+        /* CSS tối ưu cho Mobile */
+        .shipper-card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 1rem;
+            transition: transform 0.2s;
+        }
+
+            .shipper-card:active {
+                transform: scale(0.98);
+            }
+
+        .card-header-ship {
+            background-color: #fff;
+            border-bottom: 1px dashed #eee;
+            padding: 1rem;
+            border-radius: 12px 12px 0 0;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-body-ship {
+            padding: 1rem;
+            background-color: #fff;
+        }
+
+        .info-row {
+            display: flex;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .info-icon {
+            width: 24px;
+            color: var(--cf-orange);
+            margin-right: 8px;
+        }
+
+        .btn-action-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .btn-lg-mobile {
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .nav-pills .nav-link {
+            border-radius: 20px;
+            padding: 8px 20px;
+            font-weight: 600;
+        }
+
+            .nav-pills .nav-link.active {
+                background-color: var(--cf-orange);
+            }
+    </style>
+}
+
+<div class="container py-3 px-2" style="max-width: 600px;">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-0">Xin chào, Shipper!</h4>
+            <small class="text-muted">Chúc bạn một ngày làm việc an toàn.</small>
+        </div>
+        <a asp-page="/Employee/WebQuanLyView" class="btn btn-outline-secondary btn-sm rounded-circle" style="width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center;">
+            <span class="material-symbols-outlined">home</span>
+        </a>
+    </div>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success shadow-sm">@TempData["Message"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger shadow-sm">@TempData["Error"]</div>
+    }
+
+    <ul class="nav nav-pills mb-4 justify-content-center bg-white p-2 rounded-pill shadow-sm" id="pills-tab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="pills-my-tab" data-bs-toggle="pill" data-bs-target="#pills-my" type="button">
+                Đang giao <span class="badge bg-white text-danger rounded-pill ms-1">@Model.MyOrders.Count</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="pills-new-tab" data-bs-toggle="pill" data-bs-target="#pills-new" type="button">
+                Đơn mới <span class="badge bg-secondary rounded-pill ms-1">@Model.AvailableOrders.Count</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="pills-history-tab" data-bs-toggle="pill" data-bs-target="#pills-history" type="button">
+                Lịch sử
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="pills-tabContent">
+        <div class="tab-pane fade" id="pills-history">
+
+            <div class="card bg-primary text-white shadow-sm mb-4 rounded-3 border-0">
+                <div class="card-body text-center">
+                    <h6 class="opacity-75 mb-1">TỔNG TIỀN MẶT (COD) CẦN NỘP</h6>
+                    <h1 class="fw-bold display-4 mb-0">@Model.HistoryData.TongTienMatCam.ToString("N0")</h1>
+                    <span class="fs-5">VNĐ</span>
+                    <div class="mt-3 d-flex justify-content-center gap-4 border-top border-white border-opacity-25 pt-3">
+                        <div>
+                            <strong class="d-block fs-5">@Model.HistoryData.TongDonHoanThanh</strong>
+                            <small class="opacity-75">Đã giao</small>
+                        </div>
+                        <div>
+                            <strong class="d-block fs-5">@Model.HistoryData.TongDonHuy</strong>
+                            <small class="opacity-75">Đã hủy</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h6 class="fw-bold text-muted ms-2 mb-3">DANH SÁCH HÔM NAY</h6>
+
+            @if (!Model.HistoryData.LichSuDonHang.Any())
+            {
+                <div class="text-center py-4 text-muted">Chưa có lịch sử giao hàng hôm nay.</div>
+            }
+            else
+            {
+                @foreach (var item in Model.HistoryData.LichSuDonHang)
+                {
+                    <div class="card shipper-card border-start border-5 @(item.TrangThaiGiaoHang == "Hoàn thành" ? "border-success" : "border-danger")">
+                        <div class="card-body-ship p-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="fw-bold text-dark">#@item.IdHoaDon</span>
+                                <span class="badge @(item.TrangThaiGiaoHang == "Hoàn thành" ? "bg-success" : "bg-danger")">
+                                    @item.TrangThaiGiaoHang
+                                </span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="small text-muted mb-1">@item.ThoiGianTao.ToString("HH:mm") - @item.TenKhachHang</div>
+                                    <div class="fw-bold text-primary">
+                                        @if (item.GhiChu == "COD")
+                                        {
+                                            <span class="material-symbols-outlined align-middle fs-6">payments</span>
+                                        }
+                                        else
+                                        {
+
+                                            <span class="material-symbols-outlined align-middle fs-6">credit_card</span>
+                                        }
+                                        @item.GhiChu
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="d-block fw-bold text-dark">@item.ThanhTien.ToString("N0")đ</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="tab-content" id="pills-tabContent">
+
+        <div class="tab-pane fade show active" id="pills-my">
+            @if (!Model.MyOrders.Any())
+            {
+                <div class="text-center py-5 text-muted">
+                    <span class="material-symbols-outlined fs-1 text-secondary opacity-50">local_shipping</span>
+                    <p class="mt-2">Bạn chưa nhận đơn nào.</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var item in Model.MyOrders)
+                {
+                    <div class="card shipper-card border-warning border-2">
+                        <div class="card-header-ship">
+                            <span class="text-primary">#@item.IdHoaDon</span>
+                            <span class="badge bg-warning text-dark">Đang giao</span>
+                        </div>
+                        <div class="card-body-ship">
+                            <div class="info-row">
+                                <span class="material-symbols-outlined info-icon">person</span>
+                                <span class="fw-bold">@item.TenKhachHang</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="material-symbols-outlined info-icon">call</span>
+                                <a href="tel:@item.SoDienThoaiGiaoHang" class="text-decoration-none">@item.SoDienThoaiGiaoHang</a>
+                            </div>
+                            <div class="info-row">
+                                <span class="material-symbols-outlined info-icon">location_on</span>
+                                <span class="text-break">@item.DiaChiGiaoHang</span>
+                            </div>
+                            <div class="info-row mt-2 pt-2 border-top">
+                                <span class="material-symbols-outlined info-icon">payments</span>
+                                <span class="text-danger fw-bold fs-5">Thu: @item.ThanhTien.ToString("N0")đ</span>
+                            </div>
+                        </div>
+                        <div class="btn-action-group">
+                            <button class="btn btn-outline-danger btn-lg-mobile" onclick="openFailModal(@item.IdHoaDon)">
+                                <span class="material-symbols-outlined">close</span> Thất bại
+                            </button>
+                            <button class="btn btn-success btn-lg-mobile" onclick="openSuccessModal(@item.IdHoaDon, '@item.TenKhachHang')">
+                                <span class="material-symbols-outlined">photo_camera</span> Đã giao
+                            </button>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+        <div class="tab-pane fade" id="pills-new">
+            @if (!Model.AvailableOrders.Any())
+            {
+                <div class="text-center py-5 text-muted">
+                    <span class="material-symbols-outlined fs-1 text-secondary opacity-50">inventory_2</span>
+                    <p class="mt-2">Chưa có đơn hàng chờ lấy.</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var item in Model.AvailableOrders)
+                {
+                    <div class="card shipper-card">
+                        <div class="card-header-ship">
+                            <span>#@item.IdHoaDon</span>
+                            <span class="badge bg-info text-dark">Chờ lấy hàng</span>
+                        </div>
+                        <div class="card-body-ship">
+                            <div class="info-row">
+                                <span class="material-symbols-outlined info-icon">schedule</span>
+                                <span>@item.ThoiGianTao.ToString("HH:mm dd/MM")</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="material-symbols-outlined info-icon">location_on</span>
+                                <span>@item.DiaChiGiaoHang</span>
+                            </div>
+                            <div class="info-row text-muted small">
+                                <span class="material-symbols-outlined info-icon" style="font-size:18px">store</span>
+                                <span>Lấy tại quầy pha chế/bếp</span>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-light rounded-bottom">
+                            <form method="post" asp-page-handler="Pickup">
+                                <input type="hidden" name="idHoaDon" value="@item.IdHoaDon" />
+                                <button class="btn btn-primary w-100 btn-lg-mobile">
+                                    <span class="material-symbols-outlined">pan_tool_alt</span> NHẬN ĐƠN NÀY
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="successModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="Success" enctype="multipart/form-data">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-success">Xác nhận giao thành công</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="idHoaDon" id="successOrderId" />
+                    <p class="mb-3">Khách: <strong id="successCustomerName"></strong></p>
+
+                    <div class="text-center mb-3 p-3 bg-light rounded border border-dashed">
+                        <label for="cameraInput" class="d-block cursor-pointer">
+                            <span class="material-symbols-outlined fs-1 text-primary display-1">add_a_photo</span>
+                            <div class="mt-2 text-primary fw-bold">Chụp ảnh xác nhận</div>
+                        </label>
+                        <input type="file" asp-for="ProofImage" id="cameraInput" class="d-none" accept="image/*" capture="environment" onchange="previewImage(this)" required />
+                        <img id="imgPreview" class="img-fluid mt-3 rounded d-none" style="max-height: 200px;" />
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="submit" class="btn btn-success w-100 py-3 fw-bold">HOÀN TẤT ĐƠN HÀNG</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="failModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="Fail">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold text-danger">Báo cáo giao thất bại</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="idHoaDon" id="failOrderId" />
+                    <label class="form-label fw-bold">Lý do hủy/trả hàng:</label>
+                    <select asp-for="CancelReason" class="form-select mb-3" required>
+                        <option value="">-- Chọn lý do --</option>
+                        <option value="Khách không nghe máy">Khách không nghe máy</option>
+                        <option value="Sai địa chỉ/SĐT">Sai địa chỉ / SĐT</option>
+                        <option value="Khách bom hàng">Khách bom hàng (từ chối nhận)</option>
+                        <option value="Hàng bị hỏng">Hàng bị đổ/hỏng khi vận chuyển</option>
+                        <option value="Khác">Lý do khác</option>
+                    </select>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="submit" class="btn btn-danger w-100 py-3 fw-bold">XÁC NHẬN HỦY</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openSuccessModal(id, name) {
+            document.getElementById('successOrderId').value = id;
+            document.getElementById('successCustomerName').innerText = name;
+            // Reset ảnh preview
+            document.getElementById('imgPreview').classList.add('d-none');
+            document.getElementById('imgPreview').src = '';
+            new bootstrap.Modal(document.getElementById('successModal')).show();
+        }
+
+        function openFailModal(id) {
+            document.getElementById('failOrderId').value = id;
+            new bootstrap.Modal(document.getElementById('failModal')).show();
+        }
+
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    var img = document.getElementById('imgPreview');
+                    img.src = e.target.result;
+                    img.classList.remove('d-none');
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+}

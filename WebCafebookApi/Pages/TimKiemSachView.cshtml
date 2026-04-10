@@ -1,0 +1,154 @@
+﻿@page "/ThuVien/TimKiemSachView"
+@model WebCafebookApi.Pages.TimKiemSachViewModel
+
+@{
+    ViewData["Title"] = Model.PageTitle;
+}
+
+@section Styles {
+    <style>
+        /* TRẠNG THÁI THU GỌN — CHỈ 1 DÒNG + DẤU “…” */
+        #page-description-wrapper.description-truncated p {
+            white-space: nowrap !important;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* TRẠNG THÁI MỞ RỘNG — HIỂN THỊ ĐẦY ĐỦ */
+        #page-description-wrapper.description-expanded p {
+            white-space: pre-wrap !important;
+            overflow: visible;
+        }
+
+        /* Ảnh sách */
+        .card-img-container img {
+            height: 260px;
+            width: 100%;
+            object-fit: cover;
+        }
+    </style>
+}
+
+<div class="container mt-5">
+    <div class="main-content-card">
+
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="page-breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a asp-page="/TrangChuView">
+                        <span class="material-symbols-outlined">home</span> Trang Chủ
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a asp-page="/ThuVienSachView">
+                        <span class="material-symbols-outlined">import_contacts</span> Thư Viện Sách
+                    </a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    Tìm kiếm
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Tiêu đề -->
+        <h1 class="display-6 fw-bold">@Model.PageTitle</h1>
+
+        <!-- Mô tả trang -->
+        @if (!string.IsNullOrEmpty(Model.PageDescription))
+        {
+            <div id="page-description-wrapper" class="description-truncated">
+                <p class="fs-6 text-muted" style="white-space: pre-wrap;">
+                    @Model.PageDescription
+                </p>
+            </div>
+
+            <a href="javascript:void(0);" id="toggle-page-description"
+               class="btn btn-link ps-0" style="display:none;">
+                Đọc thêm...
+            </a>
+        }
+
+        <hr />
+
+        <!-- Lỗi -->
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger">@Model.ErrorMessage</div>
+        }
+
+        <!-- Danh sách sách -->
+        @if (Model.SachList != null && Model.SachList.Any())
+        {
+            <div class="row row-cols-1 row-cols-md-4 g-4">
+
+                @foreach (var item in Model.SachList)
+                {
+                    var imgUrl = string.IsNullOrEmpty(item.AnhBiaUrl)
+                        ? "/images/default-book-cover.png"
+                        : item.AnhBiaUrl;
+
+                    <div class="col">
+                        <a asp-page="/ChiTietSachView"
+                           asp-route-id="@item.IdSach"
+                           class="text-decoration-none">
+
+                            <div class="card h-100 product-card">
+
+                                <div class="card-img-container">
+                                    <img src="@imgUrl"
+                                         class="card-img-top"
+                                         alt="@item.TieuDe" />
+                                </div>
+
+                                <div class="card-body d-flex flex-column">
+                                    <h6 class="card-title book-card-title">@item.TieuDe</h6>
+                                    <p class="card-text text-danger fw-bold mt-auto mb-0">
+                                        @item.GiaBia.ToString("N0") đ
+                                    </p>
+                                </div>
+
+                            </div>
+
+                        </a>
+                    </div>
+                }
+
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                Không tìm thấy cuốn sách nào khớp với tiêu chí của bạn.
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            const $wrapper = $('#page-description-wrapper');
+            if ($wrapper.length === 0) return;
+
+            const $content = $wrapper.find('p');
+            const $btn = $('#toggle-page-description');
+
+            // Kiểm tra xem nội dung có vượt quá 1 dòng hay không
+            if ($content[0].scrollWidth > $wrapper.width()) {
+                $btn.show();
+            } else {
+                $wrapper.removeClass('description-truncated');
+            }
+
+            // Toggle mở rộng - thu gọn
+            $btn.on("click", function () {
+                const expanded = $wrapper.hasClass('description-expanded');
+
+                $wrapper.toggleClass('description-expanded description-truncated');
+                $btn.text(expanded ? 'Đọc thêm...' : 'Thu gọn');
+            });
+        });
+    </script>
+}

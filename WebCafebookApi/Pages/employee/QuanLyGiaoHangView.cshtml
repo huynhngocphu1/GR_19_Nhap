@@ -1,0 +1,153 @@
+﻿@page "/Employee/QuanLyGiaoHang"
+@model WebCafebookApi.Pages.employee.QuanLyGiaoHangViewModel
+@{
+    ViewData["Title"] = "Quản lý Giao Hàng";
+    Layout = "_Layout_Employee";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="text-primary"><span class="material-symbols-outlined align-middle fs-2">local_shipping</span> Quản lý Giao Hàng</h2>
+    @if (Model.Status == "Chờ xác nhận" && Model.GiaoHangData.DonGiaoHang.Any())
+    {
+        <form method="post" asp-page-handler="ConfirmAll">
+            <button class="btn btn-success"><span class="material-symbols-outlined align-middle">done_all</span> Xác nhận tất cả</button>
+        </form>
+    }
+</div>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+<ul class="nav nav-tabs mb-4">
+    @foreach (var tab in Model.StatusTabs)
+    {
+        <li class="nav-item">
+            <a class="nav-link @(Model.Status == tab ? "active fw-bold" : "")"
+               asp-page="./QuanLyGiaoHangView" asp-route-Status="@tab">@tab</a>
+        </li>
+    }
+</ul>
+
+<form method="get" class="mb-3 d-flex gap-2">
+    <input type="hidden" name="Status" value="@Model.Status" />
+    <input type="text" name="Search" value="@Model.Search" class="form-control" placeholder="Tìm theo Mã HĐ, Tên hoặc SĐT..." />
+    <button class="btn btn-primary">Tìm kiếm</button>
+</form>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>#ID</th>
+                        <th>Thời gian</th>
+                        <th>Khách hàng</th>
+                        <th>Địa chỉ</th>
+                        <th>Tổng tiền</th>
+                        <th>TT Giao Hàng</th>
+                        <th>Shipper</th>
+                        <th class="text-end">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.GiaoHangData.DonGiaoHang.Any())
+                    {
+                        <tr><td colspan="8" class="text-center py-5 text-muted">Không có đơn hàng nào.</td></tr>
+                    }
+                    @foreach (var item in Model.GiaoHangData.DonGiaoHang)
+                    {
+                        <tr>
+                            <td class="fw-bold">@item.IdHoaDon</td>
+                            <td>@item.ThoiGianTao.ToString("HH:mm dd/MM")</td>
+                            <td>
+                                <div>@item.TenKhachHang</div>
+                                <small class="text-muted">@item.SoDienThoaiGiaoHang</small>
+                            </td>
+                            <td class="text-truncate" style="max-width: 200px;" title="@item.DiaChiGiaoHang">@item.DiaChiGiaoHang</td>
+                            <td class="text-danger fw-bold">@item.ThanhTien.ToString("N0") đ</td>
+                            <td><span class="badge bg-info text-dark">@item.TrangThaiGiaoHang</span></td>
+                            <td>@(item.TenNguoiGiaoHang ?? "-")</td>
+                            <td class="text-end">
+                                <form method="post" asp-page-handler="UpdateStatus" class="d-inline-flex gap-2 align-items-center">
+                                    <input type="hidden" name="idHoaDon" value="@item.IdHoaDon" />
+
+                                    @if (item.TrangThaiGiaoHang == "Chờ xác nhận")
+                                    {
+                                        <button name="newStatus" value="Đang chuẩn bị" class="btn btn-sm btn-primary">Xác nhận</button>
+                                    }
+                                    else if (item.TrangThaiGiaoHang == "Chờ lấy hàng")
+                                    {
+                                        <select name="shipperId" class="form-select form-select-sm w-auto" required>
+                                            <option value="">Chọn Shipper</option>
+                                            @foreach (var s in Model.GiaoHangData.NguoiGiaoHangSanSang)
+                                            {
+                                                <option value="@s.IdNguoiGiaoHang" selected="@(s.IdNguoiGiaoHang == item.IdNguoiGiaoHang)">@s.TenNguoiGiaoHang</option>
+                                            }
+                                        </select>
+                                        <button name="newStatus" value="Đang giao" class="btn btn-sm btn-info text-white">Giao đi</button>
+                                    }
+                                    else if (item.TrangThaiGiaoHang == "Đang giao")
+                                    {
+                                        <button type="button" class="btn btn-sm btn-success" onclick="openCompleteModal(@item.IdHoaDon, '@item.TenKhachHang')">
+                                            <span class="material-symbols-outlined align-middle fs-6">check_circle</span> Hoàn thành
+                                        </button>
+                                    }
+
+                                    @if (item.TrangThaiGiaoHang != "Hoàn thành" && item.TrangThaiGiaoHang != "Đã hủy")
+                                    {
+                                        <button name="newStatus" value="Hủy" class="btn btn-sm btn-outline-danger" onclick="return confirm('Hủy đơn này?')">Hủy</button>
+                                    }
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="completeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="CompleteOrder" enctype="multipart/form-data">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">Xác nhận giao hàng thành công</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" asp-for="OrderIdToComplete" id="modalOrderId" />
+                    <p>Khách hàng: <strong id="modalCustomerName"></strong></p>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Ảnh xác nhận (Tùy chọn):</label>
+                        <input type="file" asp-for="UploadImage" class="form-control" accept="image/*" />
+                        <div class="form-text">Chụp ảnh gói hàng hoặc biên lai đã ký nhận. Lưu vào thư mục: <code>images/anhgiaohang</code></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-success">Hoàn thành ngay</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openCompleteModal(id, name) {
+            document.getElementById('modalOrderId').value = id;
+            document.getElementById('modalCustomerName').innerText = name;
+            var myModal = new bootstrap.Modal(document.getElementById('completeModal'));
+            myModal.show();
+        }
+    </script>
+}

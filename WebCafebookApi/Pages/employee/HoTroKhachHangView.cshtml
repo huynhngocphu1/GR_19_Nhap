@@ -1,0 +1,942 @@
+﻿@page "/Employee/HoTroKhachHangView"
+@model WebCafebookApi.Pages.employee.HoTroKhachHangViewModel
+@{
+    ViewData["Title"] = "Trung tâm Hỗ trợ";
+    Layout = "_Layout_Employee";
+}
+
+@section Styles {
+    <style>
+        :root {
+            --cf-brown-dark: #4E342E;
+            --cf-brown-light: #A1887F;
+            --cf-terracotta-dark: #E65100;
+            --cf-beige: #F9F9F9;
+            --cf-white: #FFFFFF;
+            --cf-text: #333;
+            --cf-text-light: #757575;
+            --cf-border: #EEEEEE;
+        }
+
+        /* === CÀI ĐẶT CHUNG === */
+        .main-content-card {
+            padding: 0;
+            /* Xóa padding gốc */
+        }
+
+        .support-dashboard-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr 380px; /* 3 cột */
+            gap: 0;
+            height: 85vh; /* Chiều cao tối đa */
+            border: 1px solid var(--cf-border);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+        }
+
+        /* === CỘT 1: DANH SÁCH PHIẾU (ĐÃ SỬA) === */
+        .ticket-list-wrapper {
+            background-color: var(--cf-white);
+            border-right: 1px solid var(--cf-border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .ticket-list-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--cf-border);
+            flex-shrink: 0;
+        }
+
+            /* (MỚI) Thêm tiêu đề cho Cột 1 */
+            .ticket-list-header h5 {
+                font-weight: 700;
+                color: var(--cf-brown-dark);
+                margin-bottom: 0.75rem;
+                font-size: 1.25rem;
+            }
+
+        /* (MỚI) Ô tìm kiếm Cột 1 */
+        #ticketSearchInput {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--cf-border);
+            border-radius: 20px; /* Bo tròn giống Messenger */
+            font-size: 0.9rem;
+        }
+
+            #ticketSearchInput:focus {
+                box-shadow: none;
+                border-color: var(--cf-terracotta-dark);
+            }
+
+
+        .ticket-list {
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .ticket-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--cf-border);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            position: relative; /* (MỚI) Cần cho chấm đỏ */
+        }
+
+            .ticket-item:hover {
+                background-color: var(--cf-beige);
+            }
+
+            .ticket-item.active {
+                background-color: #FFFDE7; /* Màu vàng nhạt khi active */
+                border-right: 3px solid var(--cf-terracotta-dark);
+            }
+
+            /* (MỚI) Tô đậm phiếu chưa xử lý */
+            .ticket-item.status-pending strong {
+                font-weight: 700; /* Tô đậm */
+                color: var(--cf-brown-dark);
+            }
+
+        /* (MỚI) Chấm đỏ báo hiệu */
+        .status-indicator {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background-color: var(--cf-terracotta-dark); /* Màu cam */
+            border-radius: 50%;
+            border: 2px solid var(--cf-white);
+        }
+
+        .ticket-item strong {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--cf-text);
+        }
+
+        .ticket-item .ticket-preview {
+            font-size: 0.85rem;
+            color: var(--cf-text-light);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ticket-item .ticket-time {
+            font-size: 0.75rem;
+            color: var(--cf-terracotta-dark);
+        }
+
+        /* === CỘT 2: CHAT (ĐÃ SỬA) === */
+        .chat-column {
+            display: flex;
+            flex-direction: column;
+            background-color: var(--cf-white);
+            border-right: 1px solid var(--cf-border);
+            overflow: hidden;
+        }
+
+        /* (MỚI) Header cho Cột 2, chứa tên và nút tìm kiếm */
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1.5rem; /* Giảm padding 1 chút */
+            border-bottom: 1px solid var(--cf-border);
+            flex-shrink: 0;
+            background-color: var(--cf-white);
+        }
+
+        .chat-header-info strong {
+            display: block;
+            font-size: 1.1rem;
+            color: var(--cf-brown-dark);
+        }
+
+        .chat-header-info small {
+            color: var(--cf-text-light);
+        }
+
+        .chat-header-actions span {
+            cursor: pointer;
+            color: var(--cf-terracotta-dark);
+            font-size: 1.5rem;
+            padding: 0.5rem;
+            border-radius: 50%;
+        }
+
+            .chat-header-actions span:hover {
+                background-color: var(--cf-beige);
+            }
+
+
+        .chat-history {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            background-color: var(--cf-beige);
+        }
+
+        .chat-message-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .chat-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--cf-white);
+            flex-shrink: 0;
+        }
+
+        .avatar-user {
+            background-color: var(--cf-terracotta-dark);
+        }
+
+        .avatar-bot {
+            background-color: var(--cf-brown-light);
+        }
+
+        .avatar-staff {
+            background-color: #0D47A1;
+        }
+
+        .chat-message-row .message-content {
+            display: flex;
+            flex-direction: column;
+            max-width: 75%;
+        }
+
+        .chat-bubble {
+            padding: 0.8rem 1.25rem;
+            border-radius: 1.25rem;
+            line-height: 1.6;
+        }
+
+        .bot-row .message-content {
+            align-items: flex-start;
+        }
+
+        .chat-bubble-bot {
+            background-color: var(--cf-white);
+            color: var(--cf-text);
+            border: 1px solid var(--cf-border);
+            border-bottom-left-radius: 0.25rem;
+        }
+
+        .user-row {
+            flex-direction: row-reverse;
+        }
+
+            .user-row .message-content {
+                align-items: flex-end;
+            }
+
+        .chat-bubble-user {
+            background: linear-gradient(135deg, #FF7043, #E65100);
+            color: white;
+            border-bottom-right-radius: 0.25rem;
+        }
+
+        .staff-row .message-content {
+            align-items: flex-start;
+        }
+
+        .chat-bubble-staff {
+            background-color: #E3F2FD;
+            color: #0D47A1;
+            border: 1px solid #BBDEFB;
+            border-bottom-left-radius: 0.25rem;
+        }
+
+        .chat-bubble-time {
+            font-size: 0.75rem;
+            color: var(--cf-text-light);
+            margin-top: 6px;
+            padding: 0 0.5rem;
+        }
+
+        .chat-input-form {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--cf-border);
+            background-color: var(--cf-white);
+            gap: 1rem;
+            flex-shrink: 0;
+        }
+
+        .chat-input-wrapper {
+            position: relative;
+            flex-grow: 1;
+        }
+
+        #chatMessageInput {
+            border: none;
+            border-bottom: 2px solid var(--cf-border);
+            border-radius: 0;
+            padding: 0.75rem 0.25rem;
+            font-size: 1.1rem;
+            width: 100%;
+        }
+
+            #chatMessageInput:focus {
+                box-shadow: none;
+                border-color: var(--cf-terracotta-dark);
+            }
+
+        #sendButton {
+            background-color: var(--cf-terracotta-dark);
+            border: none;
+            color: white;
+        }
+
+        /* === CỘT 3: TÓM TẮT (Giữ nguyên) === */
+        .summary-column {
+            background-color: var(--cf-white);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .summary-card {
+            border: none;
+            border-radius: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+            .summary-card .card-header {
+                background-color: var(--cf-brown-dark);
+                color: white;
+                font-weight: 700;
+                border-radius: 0;
+                border-bottom: none;
+                flex-shrink: 0;
+            }
+
+            .summary-card .card-body {
+                padding: 1.5rem;
+                overflow-y: auto;
+                flex-grow: 1;
+            }
+
+                .summary-card .card-body p {
+                    margin-bottom: 1rem;
+                }
+
+                    .summary-card .card-body p strong {
+                        color: var(--cf-text);
+                        display: block;
+                        font-size: 0.9rem;
+                        margin-bottom: 4px;
+                    }
+
+                .summary-card .card-body span,
+                .summary-card .card-body .request-content {
+                    font-size: 1rem;
+                }
+
+                .summary-card .card-body .request-content {
+                    background-color: var(--cf-beige);
+                    padding: 10px;
+                    border-radius: 8px;
+                    font-style: italic;
+                    color: var(--cf-text-light);
+                    white-space: pre-wrap;
+                }
+
+        /* Trạng thái trống/chờ */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--cf-text-light);
+            text-align: center;
+        }
+        /* (MỚI) Thanh tìm kiếm Cột 2 */
+        .chat-search-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1.5rem;
+            background-color: var(--cf-beige);
+            border-bottom: 1px solid var(--cf-border);
+            flex-shrink: 0;
+        }
+
+            .chat-search-bar input {
+                flex-grow: 1;
+                border: none;
+                border-bottom: 2px solid var(--cf-brown-light);
+                font-size: 0.9rem;
+                padding: 0.25rem;
+                background: transparent;
+            }
+
+                .chat-search-bar input:focus {
+                    box-shadow: none;
+                    border-color: var(--cf-terracotta-dark);
+                }
+
+            .chat-search-bar .btn-icon {
+                border: none;
+                background: none;
+                color: var(--cf-text-light);
+                padding: 0.25rem;
+            }
+
+                .chat-search-bar .btn-icon:hover {
+                    color: var(--cf-terracotta-dark);
+                }
+
+            .chat-search-bar #chatSearchResultCount {
+                font-size: 0.85rem;
+                color: var(--cf-text-light);
+                min-width: 40px; /* Giữ cho layout ổn định */
+            }
+
+        /* (MỚI) CSS để highlight kết quả tìm kiếm */
+        .highlight-search {
+            background-color: #FFF59D; /* Màu vàng nhạt */
+            color: #333;
+            border-radius: 3px;
+        }
+
+        .highlight-search-active {
+            background-color: #FFB74D; /* Màu vàng cam */
+            color: #333;
+            font-weight: bold;
+        }
+    </style>
+}
+
+@* === PHẦN HTML (ĐÃ SỬA) === *@
+<div class="support-dashboard-grid">
+
+    @* CỘT 1 (ĐÃ SỬA) *@
+    <div class="ticket-list-wrapper">
+        <div class="ticket-list-header">
+            <h5>Hộp thư hỗ trợ</h5>
+            <input type="text" id="ticketSearchInput" class="form-control" placeholder="Tìm kiếm hội thoại...">
+        </div>
+        <div class="ticket-list" id="ticket-list-container">
+            <div class="empty-state p-3">Đang tải danh sách...</div>
+        </div>
+    </div>
+
+    @* CỘT 2 (ĐÃ SỬA) *@
+    <div class="chat-column" id="chat-column">
+
+        <div class="chat-header" id="chat-header" style="display: none;">
+            <div class="chat-header-info">
+                <strong id="chatHeaderName"></strong>
+                <small id="chatHeaderStatus"></small>
+            </div>
+            <div class="chat-header-actions">
+                <span class="material-symbols-outlined" id="chatSearchIcon" title="Tìm kiếm trong hội thoại">search</span>
+            </div>
+        </div>
+        <div class="chat-search-bar" id="chat-search-bar" style="display: none;">
+            <input type="text" id="chatSearchInput" class="form-control" placeholder="Tìm kiếm trong chat..." />
+            <span id="chatSearchResultCount">0/0</span>
+            <button class="btn-icon" id="chatSearchPrev" title="Kết quả trước">
+                <span class="material-symbols-outlined">expand_less</span>
+            </button>
+            <button class="btn-icon" id="chatSearchNext" title="Kết quả tiếp theo">
+                <span class="material-symbols-outlined">expand_more</span>
+            </button>
+            <button class="btn-icon" id="chatSearchClose" title="Đóng">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="chat-history" id="chat-history">
+            <div class="empty-state">
+                <span class="material-symbols-outlined fs-1">arrow_back</span>
+                <p>Vui lòng chọn một phiếu hỗ trợ từ danh sách bên trái.</p>
+            </div>
+        </div>
+
+        <form method="post" id="chatForm" class="chat-input-form" asp-antiforgery="true">
+            <input type="hidden" id="JwtToken" value="@Model.JwtToken" />
+
+            <div class="chat-input-wrapper">
+                <input id="chatMessageInput" class="form-control" placeholder="Nhân viên nhập phản hồi..." autocomplete="off" disabled />
+            </div>
+            <button type="submit" id="sendButton" class="btn" disabled>
+                <span class="material-symbols-outlined">send</span>
+            </button>
+            <button type="button" id="resolveButton" class="btn btn-success" disabled>
+                Đã xử lý
+            </button>
+        </form>
+    </div>
+
+    @* CỘT 3 (Giữ nguyên) *@
+    <div class="summary-column" id="summary-column">
+        <div class="summary-card card">
+            <div class="card-header">
+                Thông tin Phiếu Hỗ Trợ
+            </div>
+            <div class="card-body" id="summary-card-content">
+                <div class="empty-state">
+                    <p>Chưa chọn phiếu.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
+    <script>
+                const apiBaseUrl = '@Model.ApiBaseUrl';
+        $(document).ready(function () {
+                    // === Lấy các đối tượng DOM ===
+                    const $ticketListContainer = $('#ticket-list-container');
+                    const $chatHistory = $('#chat-history');
+                    const $summaryCardContent = $('#summary-card-content');
+        const $chatForm = $('#chatForm');
+                    const $chatInput = $('#chatMessageInput');
+                    const $sendButton = $('#sendButton');
+                    const $resolveButton = $('#resolveButton'); // Nút "Đã xử lý"
+
+                    const $ticketSearchInput = $('#ticketSearchInput');
+                    const $chatHeader = $('#chat-header');
+                    const $chatHeaderName = $('#chatHeaderName');
+                    const $chatHeaderStatus = $('#chatHeaderStatus');
+                    const $chatSearchIcon = $('#chatSearchIcon');
+
+                    // (MỚI) DOM cho thanh tìm kiếm Ctrl+F
+                    const $chatSearchBar = $('#chat-search-bar');
+                    const $chatSearchInput = $('#chatSearchInput');
+                    const $chatSearchResultCount = $('#chatSearchResultCount');
+                    const $chatSearchPrev = $('#chatSearchPrev');
+                    const $chatSearchNext = $('#chatSearchNext');
+                    const $chatSearchClose = $('#chatSearchClose');
+
+
+        const jwtToken = $('#JwtToken').val() || null;
+                    const antiForgeryToken = $('input[name="__RequestVerificationToken"]').val();
+
+                    let currentTicketId = null; // ID của phiếu đang được chọn
+        let currentGroupName = null; // "Phòng" chat đang xem
+                    let currentTicketData = null; // DTO chi tiết của phiếu
+
+                    // (MỚI) Biến trạng thái cho tìm kiếm Ctrl+F
+                    let searchMatches = [];
+                    let currentSearchIndex = -1;
+
+                    const headers = {
+        'Content-Type': 'application/json',
+                        'RequestVerificationToken': antiForgeryToken
+                    };
+        if (jwtToken) { headers['Authorization'] = 'Bearer ' + jwtToken;
+        }
+
+                    // === HÀM TRUY CẬP API ===
+        async function loadTicketList() {
+                        try {
+                            const response = await fetch(`${apiBaseUrl}/api/web/quanly/hotro/tickets`, {
+                                method: 'GET',
+                                headers: headers
+        });
+                            if (!response.ok) throw new Error('Failed to load tickets');
+                            const tickets = await response.json();
+                            renderTicketList(tickets);
+        } catch (error) {
+                            console.error('Lỗi tải danh sách phiếu:', error);
+        $ticketListContainer.html('<div class="empty-state p-3">Lỗi tải danh sách.</div>');
+                        }
+                    }
+
+                    async function loadTicketDetail(id) {
+        if (!id || id === currentTicketId) return;
+
+                        // (MỚI) Reset tìm kiếm khi tải phiếu mới
+                        clearSearch();
+                        $chatSearchBar.hide();
+
+                        currentTicketId = id;
+        currentGroupName = null;
+                        currentTicketData = null;
+
+                        $('.ticket-item').removeClass('active');
+                        $(`.ticket-item[data-id="${id}"]`).addClass('active');
+
+                        $chatInput.prop('disabled', true);
+                        $sendButton.prop('disabled', true);
+                        $resolveButton.prop('disabled', true);
+        try {
+                            $chatHistory.html('<div class="empty-state">Đang tải chi tiết...</div>');
+        $summaryCardContent.html('<div class="empty-state">Đang tải...</div>');
+
+        const response = await fetch(`${apiBaseUrl}/api/web/quanly/hotro/ticket/${id}`, {
+                                method: 'GET',
+                                headers: headers
+                            });
+        if (!response.ok) throw new Error('Failed to load ticket detail');
+                            const ticketData = await response.json();
+        currentTicketData = ticketData;
+
+                            renderChatHistory(ticketData.lichSuChat);
+        renderSummary(ticketData);
+
+                            $chatHeader.show();
+                            $chatHeaderName.text(ticketData.tenKhachHang);
+                            $chatHeaderStatus.text(ticketData.trangThai);
+
+        const { idKhachHang, guestSessionId } = ticketData;
+        const groupName = idKhachHang > 0 ? `khach_${idKhachHang}` : `guest_${guestSessionId}`;
+                            if (groupName) {
+                                currentGroupName = groupName;
+        await hubConnection.invoke("JoinGroup", currentGroupName);
+                                console.log(`Joined group: ${currentGroupName}`);
+                                $chatInput.prop('disabled', false);
+        $sendButton.prop('disabled', false);
+                                $resolveButton.prop('disabled', false);
+                            } else {
+                                throw new Error("Không thể xác định groupName cho phiếu này.");
+        }
+                        } catch (error) {
+                            console.error('Lỗi tải chi tiết phiếu:', error);
+        $chatHistory.html('<div class="empty-state">Lỗi tải chi tiết.</div>');
+                        }
+                    }
+
+                    // === HÀM RENDER HTML (ĐÃ CẬP NHẬT) ===
+                    function renderTicketList(tickets) {
+        if (tickets.length === 0) {
+                            $ticketListContainer.html('<div class="empty-state p-3">Không có phiếu nào.</div>');
+        return;
+                        }
+        $ticketListContainer.empty();
+                        tickets.forEach(ticket => {
+                            const time = new Date(ticket.thoiGianTao).toLocaleString('vi-VN');
+                            const isPending = ticket.trangThai === 'Chờ xử lý';
+                            const statusClass = isPending ? 'status-pending' : '';
+                            const indicatorHtml = isPending ? '<span class="status-indicator"></span>' : '';
+                            const statusColorClass = isPending ? 'text-danger' : 'text-success';
+        const ticketHtml = `
+                                <div class="ticket-item ${statusClass}" data-id="${ticket.idThongBao}">
+                                    <div class="d-flex justify-content-between">
+                                        <strong>${ticket.tenKhachHang}</strong>
+        <span class="ticket-time ${statusColorClass}">${ticket.trangThai}</span>
+                                    </div>
+                                    <div class="ticket-preview">${ticket.noiDungYeuCau || '...'}</div>
+        <small>${time}</small>
+                                    ${indicatorHtml}
+                                </div>
+                            `;
+                            $ticketListContainer.append(ticketHtml);
+        });
+        }
+                    function renderSummary(data) {
+                        const summaryHtml = `
+                            <p><strong>Khách hàng:</strong> <span>${data.tenKhachHang}</span></p>
+        <p><strong>Phiếu số:</strong> <span>#${data.idThongBao}</span></p>
+                            <p><strong>Trạng thái:</strong> <span class="badge bg-warning text-dark fs-6">${data.trangThai}</span></p>
+                            <p><strong>Thời gian tạo:</strong> <span>${new Date(data.thoiGianTao).toLocaleString('vi-VN')}</span></p>
+        <hr />
+                            <p><strong>Yêu cầu gốc của khách:</strong> <div class="request-content">${data.noiDungYeuCau ||
+        '(Không có)'}</div></p>
+                            <p><strong>Ghi chú (AI):</strong> <div class="request-content" style="border: 1px dashed var(--cf-terracotta-dark); color: var(--cf-text)">${data.ghiChuTuAI ||
+        '(Không có)'}</div></p>
+                        `;
+        $summaryCardContent.html(summaryHtml);
+                    }
+                    function renderChatHistory(messages) {
+                        $chatHistory.empty();
+        if (!messages || messages.length === 0) {
+                            $chatHistory.html('<div class="empty-state">Chưa có lịch sử chat.</div>');
+        return;
+                        }
+                        messages.forEach(msg => {
+                            addMessageToUI(msg);
+                        });
+        scrollToBottom();
+
+                        // (MỚI) Lưu trữ HTML gốc để tìm kiếm
+                        $chatHistory.find('.chat-bubble').each(function () {
+                            $(this).data('original-html', $(this).html());
+                        });
+                    }
+                    function addMessageToUI(message) {
+        const isUser = message.loaiTinNhan === 'KhachHang';
+        const isStaff = message.loaiTinNhan === 'NhanVien';
+        const rowClass = isUser ? 'user-row' : (isStaff ? 'staff-row' : 'bot-row');
+        const avatarClass = isUser ? 'avatar-user' : (isStaff ? 'avatar-staff' : 'avatar-bot');
+        const avatarIcon = isUser ? 'person' : (isStaff ? 'support' : 'support_agent');
+        const bubbleClass = isUser ? 'chat-bubble-user' : (isStaff ? 'chat-bubble-staff' : 'chat-bubble-bot');
+        const timeAlign = isUser ? 'text-end' : 'text-start';
+        const formattedContent = (message.noiDung || '').replace(/\n/g, '<br />');
+        const time = new Date(message.thoiGian).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+
+        const $row = $('<div></div>').addClass('chat-message-row ' + rowClass);
+        const $avatar = $('<div></div>').addClass('chat-avatar ' + avatarClass)
+                            .html(`<span class="material-symbols-outlined">${avatarIcon}</span>`);
+        const $content = $('<div></div>').addClass('message-content');
+                        const $bubble = $('<div></div>').addClass('chat-bubble ' + bubbleClass).html(formattedContent);
+                        const $time = $('<div></div>').addClass('chat-bubble-time ' + timeAlign).text(time);
+                        $content.append($bubble).append($time);
+                        $row.append($avatar).append($content);
+        $chatHistory.append($row);
+
+                        // (MỚI) Cập nhật HTML gốc nếu tin nhắn đến sau (Realtime)
+                        $bubble.data('original-html', $bubble.html());
+                    }
+                    function scrollToBottom() {
+                        $chatHistory.scrollTop($chatHistory[0].scrollHeight);
+        }
+
+                    // === (MỚI) CÁC HÀM TÌM KIẾM CTRL+F ===
+
+                    // Hàm helper để escape Regex
+                    function escapeRegExp(string) {
+                        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& nghĩa là toàn bộ chuỗi khớp
+                    }
+
+                    // 1. Xóa các highlight
+                    function clearSearch() {
+                        // Khôi phục HTML gốc từ data
+                        $chatHistory.find('.chat-bubble').each(function () {
+                            const originalHtml = $(this).data('original-html');
+                            if (originalHtml !== undefined) {
+                                $(this).html(originalHtml);
+                            }
+                        });
+                        searchMatches = [];
+                        currentSearchIndex = -1;
+                        $chatSearchResultCount.text('0/0');
+                    }
+
+                    // 2. Thực hiện tìm kiếm
+                    function performSearch() {
+                        clearSearch();
+                        const searchTerm = $chatSearchInput.val();
+                        if (!searchTerm || searchTerm.length < 1) {
+                            return;
+                        }
+
+                        const regex = new RegExp(escapeRegExp(searchTerm), 'gi');
+
+                        // Lặp qua các bubble để tìm và highlight
+                        $chatHistory.find('.chat-bubble').each(function () {
+                            const $bubble = $(this);
+                            const originalHtml = $bubble.data('original-html');
+                            const textContent = $bubble.text(); // Chỉ tìm kiếm trên text, không tìm trên HTML
+
+                            if (textContent.toLowerCase().includes(searchTerm.toLowerCase())) {
+                                // Chỉ thay thế trên HTML gốc đã lưu
+                                const newHtml = originalHtml.replace(regex, (match) => {
+                                    return `<span class="highlight-search">${match}</span>`;
+                                });
+                                $bubble.html(newHtml);
+                            }
+                        });
+
+                        // Lấy TẤT CẢ các span đã được highlight
+                        searchMatches = $chatHistory.find('.highlight-search');
+                        currentSearchIndex = -1;
+
+                        if (searchMatches.length > 0) {
+                            currentSearchIndex = 0; // Chuyển đến kết quả đầu tiên
+                            updateSearchState();
+                        } else {
+                            $chatSearchResultCount.text('0/0');
+                        }
+                    }
+
+                    // 3. Cập nhật trạng thái (active, cuộn)
+                    function updateSearchState() {
+                        const total = searchMatches.length;
+                        if (total === 0) {
+                            $chatSearchResultCount.text('0/0');
+                            return;
+                        }
+
+                        // Cập nhật text
+                        $chatSearchResultCount.text(`${currentSearchIndex + 1}/${total}`);
+
+                        // Xóa active cũ, thêm active mới
+                        searchMatches.removeClass('highlight-search-active');
+                        const $activeMatch = $(searchMatches[currentSearchIndex]);
+                        $activeMatch.addClass('highlight-search-active');
+
+                        // Cuộn tới
+                        $activeMatch[0].scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center'
+                        });
+                    }
+
+                    // === LOGIC SIGNALR ===
+        const hubConnection = new signalR.HubConnectionBuilder()
+                        .withUrl(apiBaseUrl + "/chatHub")
+                        .build();
+
+        hubConnection.on("ReceiveMessage", function (message) {
+        if (currentTicketId && message.idThongBaoHoTro == currentTicketId) {
+                            addMessageToUI(message);
+        scrollToBottom();
+                            if (message.loaiTinNhan === 'NhanVien') {
+                                $chatHeaderStatus.text('Đã trả lời');
+                            }
+                        }
+        });
+        hubConnection.on("ReloadTicketList", function () {
+                        loadTicketList();
+                    });
+        async function startConnection() {
+                        try {
+                            await hubConnection.start();
+        console.log("SignalR Connected (Staff).");
+                        } catch (err) {
+                            console.error(err.toString());
+        alert("Không thể kết nối đến máy chủ chat.");
+                        }
+                    }
+
+                    // === XỬ LÝ SỰ KIỆN ===
+        $ticketListContainer.on('click', '.ticket-item', function () {
+                        const id = $(this).data('id');
+                        loadTicketDetail(id);
+                    });
+
+        $chatForm.on('submit', async function (e) {
+                        e.preventDefault();
+        if (!currentTicketId || !currentGroupName || !currentTicketData) return;
+                        const messageText = $chatInput.val();
+        if (!messageText.trim()) { return; }
+                        $chatInput.val('').prop('disabled', true);
+                        $sendButton.prop('disabled', true);
+                        try {
+                            $chatHeaderStatus.text('Đã trả lời');
+        await hubConnection.invoke("SendMessageFromStaff",
+                                currentGroupName,
+                                messageText,
+        currentTicketId,
+                                currentTicketData.idKhachHang,
+                                currentTicketData.guestSessionId
+        );
+        } catch (err) {
+                            console.error(err.toString());
+        alert('Không thể gửi phản hồi.');
+                        } finally {
+                            $chatInput.prop('disabled', false).focus();
+        $sendButton.prop('disabled', false);
+                        }
+                    });
+
+        $resolveButton.on('click', async function () {
+        if (!currentTicketId || !confirm("Bạn có chắc muốn đóng phiếu hỗ trợ này?")) return;
+                        $resolveButton.prop('disabled', true).text("Đang xử lý...");
+                        try {
+        const response = await fetch(`${apiBaseUrl}/api/web/quanly/hotro/resolve/${currentTicketId}`, {
+                                method: 'POST',
+                                headers: headers
+                            });
+        if (response.ok) {
+                                alert("Đã đóng phiếu thành công!");
+                                loadTicketList();
+                                $chatHeader.hide();
+                                clearSearch(); // (MỚI) Xóa tìm kiếm
+                                $chatSearchBar.hide(); // (MỚI) Ẩn thanh tìm kiếm
+        $chatHistory.html('<div class="empty-state">Phiếu đã đóng. Vui lòng chọn phiếu khác.</div>');
+                                $summaryCardContent.html('<div class="empty-state">Phiếu đã đóng.</div>');
+                                $chatInput.prop('disabled', true);
+        $sendButton.prop('disabled', true);
+                                $resolveButton.prop('disabled', true);
+                                currentTicketId = null;
+                                currentGroupName = null;
+                                currentTicketData = null;
+        } else {
+                                alert("Không thể đóng phiếu.");
+        }
+                        } catch (error) {
+                            console.error('Lỗi khi đóng phiếu:', error);
+        } finally {
+                            $resolveButton.prop('disabled', false).text("Đã xử lý");
+        }
+                    });
+
+        $ticketSearchInput.on('keyup', function () {
+                        const searchTerm = $(this).val().toLowerCase();
+                        $ticketListContainer.find('.ticket-item').each(function () {
+                            const customerName = $(this).find('strong').text().toLowerCase();
+                            const preview = $(this).find('.ticket-preview').text().toLowerCase();
+                            if (customerName.includes(searchTerm) || preview.includes(searchTerm)) {
+                                $(this).show();
+                            } else {
+                                $(this).hide();
+                            }
+                        });
+                    });
+
+                    // === (MỚI) SỰ KIỆN CHO THANH TÌM KIẾM CTRL+F ===
+
+                    // 5. Bấm icon search trên header
+                    $chatSearchIcon.on('click', function () {
+                        $chatSearchBar.slideToggle(200);
+                        if ($chatSearchBar.is(':visible')) {
+                            $chatSearchInput.focus();
+                        } else {
+                            clearSearch(); // Xóa khi đóng
+                        }
+                    });
+
+                    // 6. Bấm nút X (đóng)
+                    $chatSearchClose.on('click', function () {
+                        $chatSearchBar.slideUp(200);
+                        clearSearch();
+                    });
+
+                    // 7. Gõ vào ô tìm kiếm
+                    $chatSearchInput.on('input', function () {
+                        performSearch();
+                    });
+
+                    // 8. Bấm nút Next
+                    $chatSearchNext.on('click', function () {
+                        if (searchMatches.length === 0) return;
+                        currentSearchIndex++;
+                        if (currentSearchIndex >= searchMatches.length) {
+                            currentSearchIndex = 0; // Quay về đầu
+                        }
+                        updateSearchState();
+                    });
+
+                    // 9. Bấm nút Prev
+                    $chatSearchPrev.on('click', function () {
+                        if (searchMatches.length === 0) return;
+                        currentSearchIndex--;
+                        if (currentSearchIndex < 0) {
+                            currentSearchIndex = searchMatches.length - 1; // Về cuối
+                        }
+                        updateSearchState();
+                    });
+
+                    // === KHỞI CHẠY ===
+        startConnection();
+        loadTicketList();
+        });
+    </script>
+}

@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MailKit" Version="4.14.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.21" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.22" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.22" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.22">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\images\anhdanhgia\monan\" />
+    <Folder Include="wwwroot\images\anhdanhgia\sach\" />
+    <Folder Include="wwwroot\images\avatars\avatarNV\" />
+    <Folder Include="wwwroot\images\avatars\avatarKH\" />
+    <Folder Include="wwwroot\images\books\" />
+    <Folder Include="wwwroot\images\foods\" />
+    <Folder Include="wwwroot\images\anhgiaohang\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CafebookModel\CafebookModel.csproj" />
+  </ItemGroup>
+
+</Project>

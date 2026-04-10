@@ -1,0 +1,128 @@
+﻿@page "/Account/ThongTinCaNhanView"
+@model WebCafebookApi.Pages.Account.ThongTinCaNhanViewModel
+@{
+    ViewData["Title"] = "Hồ sơ";
+    Layout = "_Layout_Account"; // Sử dụng layout tài khoản
+}
+
+<h3 class="page-title-account">@ViewData["Title"]</h3>
+<p class="page-lead-account">Quản lý thông tin hồ sơ của bạn.</p>
+
+<hr class="my-4" />
+
+@if (!string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    <div class="alert alert-success">@Model.SuccessMessage</div>
+}
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger">@Model.ErrorMessage</div>
+}
+
+@if (Model.IsEditMode)
+{
+    <form method="post" enctype="multipart/form-data">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <h5 class="mb-3">Ảnh đại diện</h5>
+                <div class="avatar-upload-container">
+                    <img id="avatarPreview" src="@Model.AvatarHienTaiUrl" alt="Avatar" class="rounded-circle shadow-sm" />
+                    <label for="avatarUploadInput" class="btn btn-outline-primary btn-sm mt-3">
+                        <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">upload</span>
+                        Đổi ảnh
+                    </label>
+                    <input type="file" asp-for="AvatarFile" id="avatarUploadInput" class="d-none" accept="image/png, image/jpeg, image/gif" />
+                    <div id="avatarSizeError" class="text-danger small mt-2" style="display: none;">Lỗi: Ảnh không được vượt quá 3MB.</div>
+                    <div id="avatarTypeError" class="text-danger small mt-2" style="display: none;">Lỗi: Chỉ chấp nhận file .png, .jpg, .gif.</div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <h5 class="mb-3">Thông tin hồ sơ</h5>
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+                <div class="material-input-group mb-3">
+                    <label asp-for="Input.TenDangNhap" class="form-label fw-bold">Tên đăng nhập</label>
+                    @* Xóa "readonly disabled" và thay value bằng asp-for *@
+                    <input asp-for="Input.TenDangNhap" class="material-input" />
+                    <span asp-validation-for="Input.TenDangNhap" class="text-danger small"></span>
+                </div>
+
+                <div class="material-input-group mb-3">
+                    <label asp-for="Input.HoTen" class="form-label fw-bold"></label>
+                    <input asp-for="Input.HoTen" class="material-input" />
+                    <span asp-validation-for="Input.HoTen" class="text-danger small"></span>
+                </div>
+
+                <div class="material-input-group mb-3">
+                    <label asp-for="Input.Email" class="form-label fw-bold"></label>
+                    <input asp-for="Input.Email" class="material-input" placeholder="example@gmail.com" />
+                    <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                </div>
+
+                <div class="material-input-group mb-3">
+                    <label asp-for="Input.SoDienThoai" class="form-label fw-bold"></label>
+                    <input asp-for="Input.SoDienThoai" class="material-input" placeholder="090..." />
+                    <span asp-validation-for="Input.SoDienThoai" class="text-danger small"></span>
+                </div>
+
+                <div class="material-input-group mb-3">
+                    <label asp-for="Input.DiaChi" class="form-label fw-bold"></label>
+                    <input asp-for="Input.DiaChi" class="material-input" placeholder="Số nhà, đường, phường/xã..." />
+                    <span asp-validation-for="Input.DiaChi" class="text-danger small"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary mt-3">
+                    <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 4px;">save</span>
+                    Lưu Thay Đổi
+                </button>
+                <a asp-page="/Account/ThongTinCaNhanView" class="btn btn-link text-muted mt-3">Hủy</a>
+            </div>
+        </div>
+    </form>
+}
+else
+{
+    <div class="row g-4">
+        <div class="col-md-4 text-center">
+            <img src="@Model.AvatarHienTaiUrl" alt="Avatar" class="rounded-circle shadow-sm" style="width: 200px; height: 200px; object-fit: cover;" />
+        </div>
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Thông tin hồ sơ</h5>
+                <a asp-page-handler="Edit" class="btn btn-outline-primary btn-sm">
+                    <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">edit</span>
+                    Sửa
+                </a>
+            </div>
+
+            <div class="profile-display-group">
+                <label>Họ tên</label>
+                <p>@Model.Input.HoTen</p>
+            </div>
+            <div class="profile-display-group">
+                <label>Tên đăng nhập</label>
+                @* Sửa "Model.TenDangNhap" thành "Model.Input.TenDangNhap" *@
+                <p>@(string.IsNullOrWhiteSpace(Model.Input.TenDangNhap) ? "(Chưa cập nhật)" : Model.Input.TenDangNhap)</p>
+            </div>
+            <div class="profile-display-group">
+                <label>Email</label>
+                <p>@(string.IsNullOrWhiteSpace(Model.Input.Email) ? "(Chưa cập nhật)" : Model.Input.Email)</p>
+            </div>
+            <div class="profile-display-group">
+                <label>Số điện thoại</label>
+                <p>@(string.IsNullOrWhiteSpace(Model.Input.SoDienThoai) ? "(Chưa cập nhật)" : Model.Input.SoDienThoai)</p>
+            </div>
+            <div class="profile-display-group">
+                <label>Địa chỉ</label>
+                <p>@(string.IsNullOrWhiteSpace(Model.Input.DiaChi) ? "(Chưa cập nhật)" : Model.Input.DiaChi)</p>
+            </div>
+        </div>
+    </div>
+}
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/profile.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,68 @@
+﻿@page "/Employee/Login"
+@model WebCafebookApi.Pages.employee.DangNhapEmployeeModel
+@{
+    ViewData["Title"] = "Đăng nhập Nhân viên";
+    Layout = null; // Dùng layout riêng của trang Login
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Cafebook</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="login-page-body">
+
+    <div class="login-wrapper" style="max-width: 450px;">
+        <div class="login-container" style="flex-direction: column;">
+
+            <div class="login-form-col">
+                <a href="/"
+                   class="text-decoration-none mb-3" style="align-self: flex-start;">
+                    <span class="material-symbols-outlined" style="vertical-align: middle;">arrow_back</span>
+                    Về Trang Chủ
+                </a>
+
+                <h2 class="text-center">@ViewData["Title"]</h2>
+                <p class="text-muted text-center">Sử dụng tài khoản nội bộ của bạn.</p>
+
+                <form id="account" method="post">
+
+                    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                    {
+                        <div class="alert alert-danger" role="alert">@Model.ErrorMessage</div>
+                    }
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-2" role="alert"></div>
+
+                    <div class="form-floating-material">
+                        <input asp-for="Input.TenDangNhap" class="form-control" autocomplete="username" aria-required="true" placeholder=" " />
+                        <label asp-for="Input.TenDangNhap">Tài khoản (Username, Email hoặc SĐT)</label>
+                        <span class="material-symbols-outlined">shield_person</span>
+                        <span asp-validation-for="Input.TenDangNhap" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-floating-material">
+                        <input asp-for="Input.MatKhau" type="password" class="form-control" autocomplete="current-password" aria-required="true" placeholder=" " />
+                        <label asp-for="Input.MatKhau">Mật khẩu</label>
+                        <span class="material-symbols-outlined">lock</span>
+                        <span asp-validation-for="Input.MatKhau" class="text-danger small"></span>
+                    </div>
+
+                    <div>
+                        <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Đăng nhập</button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

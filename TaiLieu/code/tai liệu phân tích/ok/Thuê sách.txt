@@ -1,0 +1,423 @@
+# 📚 “Thuê sách” và ☕ “Gọi món / Đặt thức uống”
+---
+# 🧾 ĐẶC TẢ CHI TIẾT CHỨC NĂNG HỆ THỐNG CAFÉBOOK
+---
+## 🔷 1. Giới thiệu chung
+**Tên hệ thống:** *Cafebook Management System*
+**Mô tả tổng quát:**
+Hệ thống hỗ trợ khách hàng **thuê sách để đọc tại quán hoặc mang về**, đồng thời **đặt món / thức uống**.
+Cả hai nghiệp vụ được **quản lý tách biệt** nhưng dùng **chung thông tin khách hàng, nhân viên, và thanh toán**.
+---
+## 🔷 2. Danh sách chức năng chính
+| Mã chức năng | Tên chức năng               | Mô tả ngắn                                                              |
+| ------------ | --------------------------- | ----------------------------------------------------------------------- |
+| FS-01        | Quản lý thuê sách           | Khách hàng thuê 1 hoặc nhiều sách, có thể giao tận nơi, có thời hạn trả |
+| FS-02        | Quản lý đặt món / thức uống | Khách hàng gọi món tại quán hoặc đặt giao hàng                          |
+| FS-03        | Quản lý thanh toán          | Thanh toán cọc sách hoặc hóa đơn món                                    |
+| FS-04        | Theo dõi và xử lý đơn hàng  | Nhân viên quản lý, xác nhận, cập nhật trạng thái đơn                    |
+---
+## 🧩 3. ĐẶC TẢ CHỨC NĂNG CHI TIẾT
+---
+## 📚 **CHỨC NĂNG FS-01: THUÊ SÁCH**
+#### 1️⃣ Mục đích
+Cho phép khách hàng **thuê một hoặc nhiều quyển sách** từ quán Cafébook để đọc tại chỗ hoặc mang về.
+Có thể chọn giao tận nơi, thanh toán tiền cọc, và theo dõi phiếu thuê.
+---
+#### 2️⃣ Actor liên quan
+| Actor               | Vai trò                              |
+| ------------------- | ------------------------------------ |
+| Khách hàng          | Chọn sách, xác nhận thuê, thanh toán |
+| Nhân viên kho sách  | Xác nhận đơn, chuẩn bị sách          |
+| Nhân viên giao hàng | Giao sách đến khách nếu cần          |
+| Quản lý / Thu ngân  | Xác nhận thanh toán, xử lý trả sách  |
+---
+#### 3️⃣ Tiền điều kiện
+* Khách hàng **đã đăng nhập hệ thống.**
+* Sách **còn tồn kho** (`soLuongHienCo > 0`).
+* Tài khoản khách **không bị khóa** (`BiKhoa = 0`).
+---
+#### 4️⃣ Hậu điều kiện
+* Phiếu thuê được tạo trong bảng `PhieuThueSach`.
+* Các sách được trừ tồn (`soLuongHienCo`).
+* Thanh toán cọc được ghi nhận (nếu có).
+--
+#### 5️⃣ Luồng hoạt động chính
+| Bước | Mô tả hành động                                              | Hệ thống xử lý                                                |
+| ---- | ------------------------------------------------------------ | ------------------------------------------------------------- |
+| 1    | Khách hàng chọn 1 hoặc nhiều sách từ danh mục                | Hiển thị thông tin chi tiết sách (giá cọc, mô tả, tình trạng) |
+| 2    | Nhấn “Thuê sách”                                             | Mở form nhập thông tin thuê                                   |
+| 3    | Nhập hình thức nhận: “Tại quán” hoặc “Giao tận nơi”          | Nếu giao tận nơi → yêu cầu địa chỉ và số điện thoại           |
+| 4    | Chọn phương thức thanh toán: COD / Chuyển khoản / Ví điện tử | Lưu lựa chọn                                                  |
+| 5    | Nhấn “Xác nhận thuê”                                         | Tạo bản ghi `PhieuThueSach`, `ChiTietPhieuThue`               |
+| 6    | Hệ thống trừ sách khỏi kho, gửi thông báo                    | Hiển thị thông tin hạn trả                                    |
+| 7    | Nhân viên xác nhận đơn                                       | Cập nhật `trangThai = Đang xử lý / Đang giao / Đã trả`        |
+---
+#### 6️⃣ Các luồng phụ
+* **Luồng lỗi 1:** Sách hết hàng → hiển thị thông báo.
+* **Luồng lỗi 2:** Khách chưa đăng nhập → chuyển đến trang Login.
+* **Luồng lỗi 3:** Thanh toán thất bại → hủy phiếu, hoàn kho.
+---
+#### 7️⃣ Dữ liệu chính
+| Bảng                | Mô tả                      |
+| ------------------- | -------------------------- |
+| `PhieuThueSach`     | Thông tin phiếu thuê tổng  |
+| `ChiTietPhieuThue`  | Danh sách sách thuê        |
+| `ThanhToanThueSach` | Thông tin thanh toán       |
+| `Sach`              | Dữ liệu sách, số lượng tồn |
+---
+#### 8️⃣ Trạng thái phiếu thuê
+| Trạng thái   | Mô tả                   |
+| ------------ | ----------------------- |
+| Chờ xác nhận | Đơn mới tạo             |
+| Đang giao    | Đang gửi sách đến khách |
+| Đang thuê    | Khách đang giữ sách     |
+| Đã trả       | Đã hoàn tất             |
+| Đã hủy       | Đơn bị hủy              |
+---
+### ☕ **CHỨC NĂNG FS-02: GỌI MÓN / ĐẶT THỨC UỐNG**
+#### 1️⃣ Mục đích
+Cho phép khách hàng **đặt món, thức uống hoặc đồ ăn nhẹ** từ menu Cafébook, có thể dùng tại quán hoặc giao tận nơi.
+---
+#### 2️⃣ Actor liên quan
+| Actor                   | Vai trò                        |
+| ----------------------- | ------------------------------ |
+| Khách hàng              | Chọn món, đặt hàng, thanh toán |
+| Nhân viên pha chế / bếp | Chuẩn bị món theo đơn          |
+| Nhân viên giao hàng     | Giao món cho khách             |
+| Thu ngân                | Xác nhận thanh toán            |
+---
+#### 3️⃣ Tiền điều kiện
+* Khách hàng **đăng nhập thành công**.
+* Món ăn / thức uống **còn kinh doanh** (`trangThai = 'Còn bán'`).
+---
+#### 4️⃣ Hậu điều kiện
+* Tạo bản ghi `HoaDon` và `ChiTietHoaDon`.
+* Món được gửi đến quầy pha chế.
+* Trạng thái hóa đơn được cập nhật.
+---
+#### 5️⃣ Luồng hoạt động chính
+| Bước | Mô tả hành động                                     | Hệ thống xử lý                             |
+| ---- | --------------------------------------------------- | ------------------------------------------ |
+| 1    | Khách chọn món từ menu                              | Hiển thị thông tin chi tiết, giá, hình ảnh |
+| 2    | Chọn số lượng và thêm vào giỏ hàng                  | Cập nhật tổng tạm tính                     |
+| 3    | Chọn hình thức dùng: tại quán / giao tận nơi        | Hiển thị ô nhập địa chỉ nếu giao           |
+| 4    | Chọn phương thức thanh toán (COD / CK / Ví điện tử) | Lưu lựa chọn                               |
+| 5    | Xác nhận đặt hàng                                   | Hệ thống tạo `HoaDon`, `ChiTietHoaDon`     |
+| 6    | Chuyển đơn đến pha chế                              | Cập nhật trạng thái `Đang pha chế`         |
+| 7    | Món hoàn tất → giao hàng hoặc phục vụ               | Trạng thái `Hoàn tất`                      |
+---
+#### 6️⃣ Các luồng phụ
+* **Luồng lỗi 1:** Món hết → hiển thị thông báo.
+* **Luồng lỗi 2:** Giao hàng thất bại → cập nhật trạng thái “Đã hủy”.
+* **Luồng lỗi 3:** Thanh toán lỗi → xóa hóa đơn.
+---
+#### 7️⃣ Dữ liệu chính
+| Bảng              | Mô tả                      |
+| ----------------- | -------------------------- |
+| `HoaDon`          | Lưu thông tin hóa đơn món  |
+| `ChiTietHoaDon`   | Món, số lượng, đơn giá     |
+| `ThanhToanHoaDon` | Giao dịch thanh toán       |
+| `SanPham`         | Danh mục thức uống / đồ ăn |
+--
+#### 8️⃣ Trạng thái hóa đơn
+| Trạng thái   | Mô tả                   |
+| ------------ | ----------------------- |
+| Chờ xác nhận | Mới đặt                 |
+| Đang pha chế | Nhân viên đang chuẩn bị |
+| Đang giao    | Giao tận nơi            |
+| Hoàn tất     | Đã giao / phục vụ xong  |
+| Đã hủy       | Đơn bị hủy              |
+---
+### 💰 **CHỨC NĂNG FS-03: THANH TOÁN**
+#### Mục tiêu:
+Cung cấp các phương thức thanh toán linh hoạt cho cả thuê sách và gọi món.
+| Phương thức      | Mô tả                                       | Áp dụng            |
+| ---------------- | ------------------------------------------- | ------------------ |
+| **COD**          | Thanh toán khi nhận hàng                    | Thuê sách, đặt món |
+| **Chuyển khoản** | Chuyển qua tài khoản ngân hàng              | Thuê sách, đặt món |
+| **Ví điện tử**   | Thanh toán online (Momo, ZaloPay, VNPay...) | Thuê sách, đặt món |
+---
+### 📋 **CHỨC NĂNG FS-04: THEO DÕI & XỬ LÝ ĐƠN HÀNG**
+#### Mục tiêu:
+* Giúp khách hàng xem trạng thái đơn thuê hoặc đặt món.
+* Giúp nhân viên cập nhật tiến trình xử lý.
+#### Actor:
+* **Khách hàng:** xem lịch sử đơn.
+* **Nhân viên:** xác nhận, cập nhật, hủy, hoàn tiền.
+#### Chức năng chi tiết:
+| Mã    | Hành động           | Mô tả                                    |
+| ----- | ------------------- | ---------------------------------------- |
+| F04.1 | Xem lịch sử thuê    | Hiển thị danh sách phiếu thuê theo khách |
+| F04.2 | Xem lịch sử hóa đơn | Hiển thị danh sách hóa đơn món           |
+| F04.3 | Hủy đơn hàng        | Cho phép hủy nếu chưa xử lý              |
+| F04.4 | Cập nhật trạng thái | Nhân viên cập nhật tiến độ đơn           |
+---
+## 🧱 4. Mô hình dữ liệu liên quan
+| Loại dữ liệu        | Bảng chính                             | Mô tả                        |
+| ------------------- | -------------------------------------- | ---------------------------- |
+| **Sách**            | `Sach`                                 | Thông tin sách, số lượng tồn |
+| **Phiếu thuê**      | `PhieuThueSach`, `ChiTietPhieuThue`    | Ghi nhận thuê sách           |
+| **Món / thức uống** | `SanPham`                              | Danh sách sản phẩm           |
+| **Hóa đơn**         | `HoaDon`, `ChiTietHoaDon`              | Ghi nhận gọi món             |
+| **Khách hàng**      | `KhachHang`                            | Thông tin người dùng         |
+| **Thanh toán**      | `ThanhToanThueSach`, `ThanhToanHoaDon` | Quản lý giao dịch tiền       |
+---
+## ✅ 5. Kết luận
+* “Thuê sách” và “Gọi món” **là hai module độc lập**.
+* Cả hai **chia sẻ chung hệ thống đăng nhập, khách hàng, nhân viên, và thanh toán.**
+* Không cần thêm bảng “gộp”, chỉ cần **truy vấn chung theo `idKhachHang` hoặc dùng VIEW** khi thống kê.
+* Cấu trúc hiện tại **đủ mạnh để mở rộng**, ví dụ:
+  * Thêm “Đặt bàn” (liên kết với Hóa đơn).
+  * Thêm “Mua sách” (liên kết với Phiếu thuê).
+//////////////////
+🧾 ĐẶC TẢ CHỨC NĂNG MỚI: THANH TOÁN (KHÁCH HÀNG ONLINE)
+
+Mã chức năng: FS-09
+
+🎯 1️⃣ Mục đích
+
+Cho phép khách hàng tự thanh toán đơn hàng thuê sách hoặc đặt món online với các tính năng:
+
+
+
+Sử dụng điểm tích lũy để giảm giá.
+
+Nhập mã khuyến mãi / giảm giá.
+
+Chọn phương thức thanh toán: COD, chuyển khoản, ví điện tử.
+
+Lưu toàn bộ giao dịch vào bảng ThanhToanOnline (mới).
+
+Tự động cộng điểm thưởng sau khi hoàn tất thanh toán.
+
+👥 2️⃣ Actor liên quan
+
+ActorVai tròKhách hàngTự thao tác thanh toán online cho đơn hàngHệ thống thanh toánKiểm tra mã giảm giá, trừ điểm, xác nhận giao dịchNhân viên / Quản lýTheo dõi và xử lý các giao dịch online (nếu cần tra soát)
+
+⚙️ 3️⃣ Luồng nghiệp vụ chính
+
+BướcHành động của khách hàngHệ thống xử lý1️⃣Khách hàng mở màn hình thanh toán cho đơn (thuê sách hoặc gọi món)Gọi API GET /api/client/thanhtoan/init/{idDon} để tải dữ liệu (sản phẩm, tổng tiền, điểm hiện có, khuyến mãi hợp lệ)2️⃣Khách nhập mã khuyến mãi (nếu có)Hệ thống gọi POST /api/client/thanhtoan/check-km để kiểm tra điều kiện3️⃣Khách chọn “dùng điểm thưởng”Hệ thống trừ điểm tạm tính, hiển thị tổng tiền giảm4️⃣Khách chọn phương thức thanh toán (COD / chuyển khoản / ví điện tử)Hiển thị hướng dẫn / chuyển hướng cổng thanh toán nếu online5️⃣Khách xác nhận “Thanh toán”Gửi POST /api/client/thanhtoan/confirm chứa dữ liệu mã KM, điểm sử dụng, phương thức6️⃣Nếu thanh toán thành công- Lưu ThanhToanOnline
+
+Giảm điểm đã sử dụng
+
+Cộng điểm mới theo cấu hình (CaiDatTichDiem)
+
+Gửi thông báo xác nhận qua Email / App |
+
+
+
+| 7️⃣ | Hiển thị màn hình “Thanh toán thành công” | Kèm mã giao dịch và chi tiết giảm giá |
+
+🔁 4️⃣ Luồng lỗi
+
+Tình huốngHệ thống xử lýMã giảm giá không hợp lệ / hết hạnHiển thị thông báo và yêu cầu nhập mã khácĐiểm tích lũy không đủTự động điều chỉnh xuống mức tối đa có thể sử dụngGiao dịch thanh toán thất bạiĐánh dấu ThanhToanOnline.TrangThai = 'Thất bại' và thông báo kháchKết nối ví điện tử bị gián đoạnCho phép chọn lại phương thức thanh toán khác
+
+💾 5️⃣ Cấu trúc dữ liệu và bảng mới
+
+🆕 Bảng 1: ThanhToanOnline
+
+Ghi nhận các giao dịch thanh toán của khách hàng trên app/web.
+
+
+
+
+
+CREATE TABLE ThanhToanOnline (
+
+    IdThanhToan INT IDENTITY(1,1) PRIMARY KEY,
+
+    LoaiDon NVARCHAR(50),         -- 'HoaDon' hoặc 'PhieuThueSach'
+
+    IdDon INT NOT NULL,           
+
+    IdKhachHang INT NOT NULL,
+
+    PhuongThuc NVARCHAR(50),      -- 'COD', 'Chuyển khoản', 'Ví điện tử'
+
+    SoTien DECIMAL(18,2),
+
+    MaGiaoDich NVARCHAR(100),
+
+    TrangThai NVARCHAR(50),       -- 'Thành công', 'Thất bại', 'Đang xử lý'
+
+    NgayThanhToan DATETIME DEFAULT GETDATE(),
+
+    DiemSuDung INT DEFAULT 0,
+
+    GiamTuDiem DECIMAL(18,2) DEFAULT 0,
+
+    IdKhuyenMai INT NULL,
+
+    GiamTuKhuyenMai DECIMAL(18,2) DEFAULT 0,
+
+    DiemTichLuyCong INT DEFAULT 0,
+
+    FOREIGN KEY (IdKhachHang) REFERENCES KhachHang(IdKhachHang)
+
+);
+
+🆕 Bảng 2: LichSuThanhToanOnline
+
+Lưu vết (log) chi tiết các lần xác thực giao dịch (đặc biệt cho ví điện tử hoặc ngân hàng).
+
+
+
+
+
+CREATE TABLE LichSuThanhToanOnline (
+
+    IdLichSu INT IDENTITY(1,1) PRIMARY KEY,
+
+    IdThanhToan INT NOT NULL,
+
+    TrangThai NVARCHAR(100),
+
+    NoiDung NVARCHAR(MAX),
+
+    ThoiGian DATETIME DEFAULT GETDATE(),
+
+    FOREIGN KEY (IdThanhToan) REFERENCES ThanhToanOnline(IdThanhToan)
+
+);
+
+⚙️ 6️⃣ API endpoints cho khách hàng
+
+APIMô tảMethod/api/client/thanhtoan/init/{idDon}Lấy thông tin đơn, tổng tiền, điểm hiện cóGET/api/client/thanhtoan/check-kmKiểm tra điều kiện mã giảm giáPOST/api/client/thanhtoan/confirmXác nhận thanh toán và lưu dữ liệuPOST/api/client/thanhtoan/status/{maGiaoDich}Kiểm tra trạng thái giao dịchGET
+
+💳 7️⃣ Quy tắc tính điểm & giảm giá
+
+Quy tắcCông thứcĐiểm tích lũy mớifloor(Tổng tiền thanh toán / TiLeNhanDiem)Giảm từ điểmĐiểm sử dụng * TiLeDoiDiemGiảm từ khuyến mãiTheo loại: phần trăm hoặc giá trị cố địnhTổng tiền cuối cùngTổng gốc + Phụ thu - Giảm KM - Giảm điểm
+
+🧩 8️⃣ Giao diện (Khách hàng)
+
+Màn hình hiển thị:
+
+Tổng tiền
+
+Ô nhập mã khuyến mãi
+
+Ô nhập “Số điểm muốn sử dụng”
+
+Kết quả giảm giá hiển thị động (Giảm KM + Giảm điểm)
+
+Lựa chọn phương thức thanh toán
+
+Nút “Xác nhận thanh toán”
+
+Sau khi thanh toán:
+
+Hiển thị màn hình xác nhận (Success screen)
+
+Cho phép xem lại chi tiết giao dịch (link /LichSuThanhToan).
+
+✅ 9️⃣ Tích hợp với hệ thống hiện có
+
+Dùng chung bảng KhachHang (để lấy và cập nhật điểm).
+
+Dùng KhuyenMai để kiểm tra mã hợp lệ.
+
+Gọi API hiện có /api/app/nhanvien/khuyenmai/available nội bộ để lọc khuyến mãi hợp lệ cho đơn khách.
+
+Khi thanh toán xong, cập nhật:
+
+KhachHang.DiemTichLuy = DiemTichLuy - DiemSuDung + DiemTichLuyCong
+
+Ghi ThanhToanOnline và LichSuThanhToanOnline.
+
+🧱 10️⃣ Tóm tắt nghiệp vụ
+
+Tên chức năngMục tiêuActorBảng liên quanThanh toán OnlineCho phép khách tự thanh toán đơnKhách hàngThanhToanOnline, LichSuThanhToanOnlineÁp dụng điểm thưởngTrừ điểm để giảm giáKhách hàngKhachHang, LichSuDiemÁp dụng mã giảm giáGiảm giá trực tiếp theo chương trìnhKhách hàngKhuyenMai, HoaDon_KhuyenMaiCộng điểm sau thanh toánThưởng cho khách hàng trung thànhHệ thốngKhachHang, LichSuDiem
+
+🧠 Kết luận
+
+ThanhToanOnline là module song song với ThanhToanView của nhân viên, nhưng logic tính toán tương tự.
+
+Khách hàng chỉ thao tác phần đầu, không xử lý tách hóa đơn hay phụ thu.
+
+Hệ thống tự động áp dụng khuyến mãi, trừ điểm và ghi giao dịch.
+
+Dữ liệu có thể đồng bộ ngược về backend để nhân viên tra soát và in biên lai nếu cần.
+
+🧩 1️⃣ Giai đoạn 1 – Tạo và quản lý giỏ hàng (Session-based)
+
+🔹 Đối tượng: CartItemDto
+
+Lưu trong Session theo khóa SessionExtensions.CartKey.
+
+Thuộc tínhMô tảIdID của sách hoặc sản phẩmLoai“Sach” hoặc “SanPham”SoLuongSố lượng (sách = 1 cố định)
+
+🔹 Quy trình:
+
+Khi người dùng nhấn “Thêm vào giỏ hàng”:
+
+App kiểm tra HttpContext.Session.
+
+Nếu chưa có giỏ hàng, tạo mới List<CartItemDto>.
+
+Thêm item (sách hoặc món).
+
+Lưu lại session qua HttpContext.Session.Set().
+
+Khi người dùng vào trang /giohang:
+
+Controller (GioHangViewPageModel) đọc session.
+
+Gọi API (qua HttpClient) để lấy thông tin chi tiết từng item:
+
+Nếu Loai == "Sach" → gọi api/web/thuvien/{id}
+
+Nếu Loai == "SanPham" → gọi api/web/thucdon/{id}
+
+Dựng GioHangItemViewModel với:
+
+TenHienThi, HinhAnhUrl, DonGia, SoLuong, ThanhTien
+
+Trả về view hiển thị danh sách và tổng tiền (GioHangViewModel.TongTien).
+
+Người dùng có thể:
+
+❌ Xóa item khỏi giỏ (OnPostRemove)
+
+🔄 Cập nhật số lượng (OnPostUpdateQuantity)
+
+
+
+→ Nếu là “Sách”, số lượng luôn = 1.
+
+🧱 => Giai đoạn này là tạm thời, dữ liệu chỉ nằm trong Session, chưa ghi vào database.
+
+💳 2️⃣ Giai đoạn 2 – Tiến hành thanh toán
+
+Sau khi người dùng nhấn “Thanh toán”, hệ thống chuyển sang ThanhToanView.
+
+
+
+🔹 Input từ giỏ hàng:
+
+Danh sách sản phẩm trong session.
+
+Tổng tiền tạm tính (GioHangViewModel.TongTien).
+
+🔹 Tại trang ThanhToanView (đã có bản nhân viên → sẽ tái sử dụng cho khách hàng):
+
+Hệ thống thực hiện:
+
+BướcMô tả xử lýKết quả1Tải lại danh sách món / sách trong giỏHiển thị tổng tiền tạm tính2Cho phép nhập mã giảm giá (KhuyenMai)Gọi API kiểm tra hợp lệ3Cho phép nhập điểm thưởng cần sử dụng (DiemTichLuy)Giảm giá tạm thời4Chọn phương thức thanh toán (COD / Chuyển khoản / Ví điện tử)Cập nhật lựa chọn5Xác nhận Thanh toánGửi API POST /api/client/thanhtoan/confirm
+🧾 3️⃣ Giai đoạn 3 – Ghi nhận đơn hàng
+🔹 Nếu là đặt món / đồ uống:
+Sinh HoaDon + ChiTietHoaDon
+Ghi ThanhToanOnline (kèm giảm giá, điểm)
+Giảm KhuyenMai.soLuongConLai
+Cập nhật KhachHang.DiemTichLuy
+🔹 Nếu là thuê sách:
+Sinh PhieuThueSach + ChiTietPhieuThue
+Ghi ThanhToanOnline
+Trừ sách tồn kho (Sach.soLuongHienCo)
+Áp dụng logic điểm thưởng tương tự.
+🧩 4️⃣ Mô hình dữ liệu tham gia
+Mục đíchBảng / Dữ liệu liên quanLưu giỏ hàng tạm thờiSession[List<CartItemDto>]Đơn đặt mónHoaDon, ChiTietHoaDonĐơn thuê sáchPhieuThueSach, ChiTietPhieuThueKhuyến mãiKhuyenMai, HoaDon_KhuyenMaiĐiểm thưởngKhachHang, LichSuDiemThanh toán onlineThanhToanOnline, LichSuThanhToanOnline
+🧮 5️⃣ Quy tắc tính toán
+Công thứcDiễn giảiTổng tạm tính = Σ (Đơn giá × Số lượng)Tính từ GioHangViewModelGiảm từ khuyến mãi = phần trăm hoặc số tiềnTheo KhuyenMaiGiảm từ điểm = DiemSuDung × TiLeDoiDiemTheo cấu hìnhTổng thanh toán = Tổng tạm tính - Giảm KM - Giảm điểmKết quả cuốiĐiểm thưởng mới = floor(Tổng thanh toán / TiLeNhanDiem)Cộng vào tài khoản khách
+📦 6️⃣ Giai đoạn 4 – Sau thanh toán
+Hành độngHệ thống xử lýGiao dịch thành côngCập nhật ThanhToanOnline.TrangThai = 'Hoàn tất'Giao dịch lỗiTrangThai = 'Thất bại', hoàn điểm và khuyến mãiXóa session giỏ hàngKhi đơn đã xác nhậnGửi thông báoEmail / Thông báo app xác nhận giao dịch thành công
+///////////

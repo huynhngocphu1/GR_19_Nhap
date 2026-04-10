@@ -1,0 +1,209 @@
+﻿<Page x:Class="AppCafebookApi.View.nhanvien.pages.ChamCongView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:sys="clr-namespace:System;assembly=mscorlib"
+      mc:Ignorable="d" 
+      FontFamily="Segoe UI"
+      d:DesignHeight="720" d:DesignWidth="1150"
+      Title="ChamCongView" Loaded="Page_Loaded">
+
+    <Page.Resources>
+        <SolidColorBrush x:Key="ButtonGreen" Color="#28a745"/>
+        <SolidColorBrush x:Key="ButtonRed" Color="#dc3545"/>
+        <SolidColorBrush x:Key="ButtonGray" Color="#6c757d"/>
+
+        <SolidColorBrush x:Key="ButtonOrange" Color="#fd7e14"/>
+        <SolidColorBrush x:Key="ButtonBlue" Color="#007bff"/>
+        <SolidColorBrush x:Key="TextLight" Color="#6c757d"/>
+        <SolidColorBrush x:Key="TextDark" Color="#343a40"/>
+        <SolidColorBrush x:Key="PrimaryBrush" Color="#6F4E37"/>
+        <SolidColorBrush x:Key="LightBrush" Color="#FFF8E1"/>
+        <SolidColorBrush x:Key="GreenBrush" Color="#388E3C"/>
+        <SolidColorBrush x:Key="BlueBrush" Color="#1976D2"/>
+        <SolidColorBrush x:Key="RedBrush" Color="#D32F2F"/>
+
+
+        <Geometry x:Key="IconUser">M12,12A5,5 0 0,1 7,7A5,5 0 0,1 12,2A5,5 0 0,1 17,7A5,5 0 0,1 12,12M12,14C14.67,14 20,15.33 20,18V20H4V18C4,15.33 9.33,14 12,14Z</Geometry>
+        <Geometry x:Key="IconLate">M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M16.2,16.2L11,13V7H12.5V12.2L17,14.9L16.2,16.2Z</Geometry>
+        <Geometry x:Key="IconLeave">M17,7V11H15V7H9V11H7V7H5V17H7V13H9V17H15V13H17V17H19V7H17Z</Geometry>
+
+        <Style x:Key="ChamCongButton" TargetType="Button">
+        </Style>
+    </Page.Resources>
+
+    <Grid Background="{StaticResource LightBrush}">
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="350"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+
+        <Border Grid.Column="0" Background="White" BorderBrush="#EEE" BorderThickness="0,0,1,0">
+            <StackPanel Margin="20">
+                <TextBlock x:Name="lblThoiGianThucTe"
+                           Text="00:00:00"
+                           FontSize="42"
+                           FontWeight="Bold"
+                           Foreground="{StaticResource TextDark}"
+                           HorizontalAlignment="Center"
+                           Margin="0,10,0,5"/>
+                <TextBlock Text="{Binding Source={x:Static sys:DateTime.Now}, StringFormat='dd/MM/yyyy'}"
+                           FontSize="15"
+                           Foreground="{StaticResource TextLight}"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,20"/>
+
+                <Border Background="{StaticResource LightBrush}" CornerRadius="8" Padding="15">
+                    <StackPanel>
+                        <TextBlock x:Name="lblTrangThaiChinh" 
+                                   Text="Đang tải..." 
+                                   Foreground="{StaticResource TextDark}" 
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"
+                                   MinHeight="30"
+                                   Margin="0,0,0,10"/>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,15" MinHeight="20">
+                            <Border x:Name="borderDonNghi" Background="#FFF8E1" CornerRadius="10" Padding="8,3" Margin="0,0,5,0" Visibility="Collapsed">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="{StaticResource IconLeave}" Fill="#FFA000" Width="23" Height="23" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="lblTrangThaiDonNghi" Text="Chờ duyệt nghỉ" FontSize="11" FontWeight="SemiBold" Foreground="#FFA000" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                            <Border x:Name="borderDiTre" Background="#FBE9E7" CornerRadius="10" Padding="8,3" Visibility="Collapsed">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="{StaticResource IconLate}" Fill="#D32F2F" Width="23" Height="23" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="lblDiTre" Text="Trễ: 0 lần" FontSize="11" FontWeight="SemiBold" Foreground="#D32F2F" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <Button x:Name="btnChamCong" 
+                                Content="CHẤM CÔNG" 
+                                Style="{StaticResource ChamCongButton}"
+                                Background="{StaticResource ButtonGreen}"
+                                Click="BtnChamCong_Click"
+                                Visibility="Collapsed"
+                                Padding="15,10"
+                                FontSize="16"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Column="1" Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
+                <TextBlock Text="Tổng quan" FontSize="24" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center"/>
+                <DatePicker x:Name="dpChonThang" VerticalAlignment="Center" Margin="30,0,0,0" Width="150"
+                            SelectedDateChanged="DpChonThang_SelectedDateChanged"/>
+            </StackPanel>
+
+            <Border Grid.Row="1" Background="White" BorderBrush="#EEE" BorderThickness="1" CornerRadius="8" Margin="0,0,0,20" Padding="20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                        <TextBlock Text="TỔNG GIỜ LÀM" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextLight}"/>
+                        <TextBlock x:Name="lblTongGioLam" Text="0.00" FontSize="28" FontWeight="Bold" Foreground="{StaticResource BlueBrush}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                        <TextBlock Text="SỐ LẦN ĐI TRỄ" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextLight}"/>
+                        <TextBlock x:Name="lblSoLanDiTre" Text="0" FontSize="28" FontWeight="Bold" Foreground="{StaticResource RedBrush}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                        <TextBlock Text="SỐ NGÀY NGHỈ PHÉP" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextLight}"/>
+                        <TextBlock x:Name="lblSoNgayNghiPhep" Text="0" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextDark}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+
+            <TabControl Grid.Row="2" Background="Transparent" BorderThickness="0">
+                <TabItem Header="Lịch sử Chấm công" FontWeight="SemiBold">
+                    <DataGrid x:Name="dgLichSuChamCong"
+                              AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Ngày" Binding="{Binding Ngay}" Width="110"/>
+                            <DataGridTextColumn Header="Ca Làm Việc" Binding="{Binding CaLamViec}" Width="*"/>
+                            <DataGridTextColumn Header="Giờ Vào" Binding="{Binding GioVao}" Width="80"/>
+                            <DataGridTextColumn Header="Giờ Ra" Binding="{Binding GioRa}" Width="80"/>
+                            <DataGridTextColumn Header="Đi Trễ" Binding="{Binding DiTre}" Width="100"/>
+                            <DataGridTextColumn Header="Giờ Công" Binding="{Binding SoGioLam, StringFormat=N2}" Width="80"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </TabItem>
+                <TabItem Header="Danh sách Đơn xin nghỉ" FontWeight="SemiBold">
+                    <DataGrid x:Name="dgDonXinNghi"
+                              AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Thời gian nghỉ" Binding="{Binding ThoiGian}" Width="110"/>
+                            <DataGridTextColumn Header="Lý do" Binding="{Binding LyDo}" Width="*"/>
+                            <DataGridTextColumn Header="Trạng thái" Binding="{Binding TrangThai}" Width="100"/>
+                            <DataGridTextColumn Header="Phê duyệt" Binding="{Binding PheDuyet}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </TabItem>
+
+                <TabItem x:Name="tabVietDon" Header="Viết Đơn Xin Nghỉ" FontWeight="SemiBold">
+                    <Border Background="White" CornerRadius="8" Padding="25" Margin="0,10,0,0"
+                            BorderBrush="#EEE" BorderThickness="1">
+                        <StackPanel MaxWidth="600" HorizontalAlignment="Left">
+                            <TextBlock Text="Viết đơn xin nghỉ" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,20"/>
+
+                            <Grid Margin="0,0,0,15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                                    <TextBlock Text="Từ ngày:" FontWeight="SemiBold"/>
+                                    <DatePicker x:Name="dpNgayBatDau" Margin="0,5,0,0"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                    <TextBlock Text="Đến ngày:" FontWeight="SemiBold"/>
+                                    <DatePicker x:Name="dpNgayKetThuc" Margin="0,5,0,0"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock Text="Loại đơn:" FontWeight="SemiBold"/>
+                            <ComboBox x:Name="cmbLoaiDon" Margin="0,5,0,15">
+                                <ComboBoxItem Content="Nghỉ phép (Có lương)"/>
+                                <ComboBoxItem Content="Nghỉ bệnh"/>
+                                <ComboBoxItem Content="Nghỉ không phép"/>
+                                <ComboBoxItem Content="Nghỉ việc riêng"/>
+                            </ComboBox>
+
+                            <TextBlock Text="Lý do:" FontWeight="SemiBold"/>
+                            <TextBox x:Name="txtLyDo" Margin="0,5,0,20" Height="100" TextWrapping="Wrap" AcceptsReturn="True" 
+                                     VerticalScrollBarVisibility="Auto" Padding="5"
+                                     BorderBrush="#CCC" BorderThickness="1"/>
+
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="btnGuiDon" Content="Gửi đơn" Background="{StaticResource GreenBrush}" Foreground="White"
+                                        Padding="15,8" FontWeight="Bold" Click="BtnGuiDon_Click"/>
+                                <Button x:Name="btnHuyGuiDon" Content="Hủy" Margin="10,0,0,0" 
+                                        Padding="15,8" Click="BtnHuyGuiDon_Click"
+                                        Background="White" Foreground="#333" BorderBrush="#CCC" BorderThickness="1"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </TabItem>
+            </TabControl>
+        </Grid>
+    </Grid>
+</Page>

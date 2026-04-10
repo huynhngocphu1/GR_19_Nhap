@@ -1,0 +1,92 @@
+﻿@using System.Security.Claims
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Quản lý Cafebook</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="employee-body">
+    <div class="d-flex">
+
+        <nav class="sidebar-nav">
+            <div class="sidebar-header">
+                <a class="navbar-brand fs-4" asp-page="/employee/WebQuanLyView">
+                    <span class="material-symbols-outlined" style="vertical-align: middle;">coffee</span>
+                    Cafebook
+                </a>
+            </div>
+
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["Title"]?.ToString() == "Bảng điều khiển" ? "active" : "")"
+                       asp-page="/Employee/WebQuanLyView">
+                        <span class="material-symbols-outlined">analytics</span>
+                        Tổng quan
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["Title"]?.ToString() == "Sơ Đồ Bàn" ? "active" : "")"
+                       asp-page="/Employee/SoDoBanView">
+                        <span class="material-symbols-outlined">grid_view</span>
+                        Sơ Đồ Bàn
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["Title"]?.ToString() == "Hỗ trợ Khách hàng" ? "active" : "")"
+                       asp-page="/Employee/HoTroKhachHangView">
+                        <span class="material-symbols-outlined">support_agent</span>
+                        Hỗ trợ Khách hàng
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["Title"]?.ToString() == "Quản lý Giao hàng" ? "active" : "")"
+                       asp-page="/Employee/QuanLyGiaoHangView">
+                        <span class="material-symbols-outlined">support_agent</span>
+                        Quản lý Giao hàng
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["Title"]?.ToString() == "Ứng dụng Shipper" ? "active" : "")"
+                       asp-page="/Employee/ShipperGiaoHangView">
+                        <span class="material-symbols-outlined">two_wheeler</span>
+                        Ứng dụng Shipper
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="main-content">
+            <header class="header-nav shadow-sm">
+                <span class="navbar-text fw-bold" style="color: var(--cf-text);">
+                    Xin chào, @(User.FindFirstValue(ClaimTypes.GivenName) ?? User.Identity?.Name)!
+                </span>
+                <form method="post" asp-page="/employee/DangXuat">
+                    <button type="submit" class="btn btn-link nav-link text-danger d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined">logout</span>
+                        Đăng xuất
+                    </button>
+                </form>
+            </header>
+
+            <main role="main">
+                <div class="main-content-card">
+                    @RenderBody()
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

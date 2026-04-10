@@ -1,0 +1,244 @@
+Rất hay 👏 — bạn đang hoàn thiện hệ thống **Cafébook** bằng cách thêm **màn hình “Giao hàng” dành cho nhân viên giao hàng trên web**.
+Đây là bước quan trọng trong quy trình nghiệp vụ:
+
+> Đặt món / thuê sách → Chuẩn bị → Giao hàng → Hoàn tất / Hoàn trả.
+
+Dưới đây là **bản đặc tả chi tiết** (có thể dùng cho báo cáo đồ án và triển khai thực tế), bao gồm:
+
+* Mục tiêu
+* Nghiệp vụ chi tiết
+* Cấu trúc dữ liệu
+* Giao diện đề xuất (UI)
+* Các luồng trạng thái
+* Quy trình cập nhật trạng thái giao hàng
+
+---
+
+# 🚚 ĐẶC TẢ CHỨC NĂNG: MÀN HÌNH GIAO HÀNG (CHO NHÂN VIÊN)
+
+---
+
+## 🔷 1. Mục tiêu
+
+Xây dựng **màn hình web** cho **nhân viên giao hàng**, giúp:
+
+* Xem danh sách đơn hàng cần giao (sách / món).
+* Nhận đơn giao, xem thông tin khách hàng.
+* Cập nhật trạng thái: *Đang giao → Đã giao → Hoàn tất*.
+* Ghi chú tình huống đặc biệt (không liên hệ được, giao lỗi…).
+* Theo dõi lịch sử giao hàng của chính nhân viên.
+
+---
+
+## 🔷 2. Actor liên quan
+
+| Actor                             | Vai trò                                          |
+| --------------------------------- | ------------------------------------------------ |
+| **Nhân viên giao hàng**           | Tiếp nhận, xem, và cập nhật trạng thái đơn hàng. |
+| **Nhân viên thu ngân / hệ thống** | Tạo đơn, phân công người giao.                   |
+| **Khách hàng**                    | Nhận thông tin đơn, xác nhận nhận hàng.          |
+| **Quản lý**                       | Theo dõi hiệu suất giao hàng, tình trạng đơn.    |
+
+---
+
+## 🔷 3. Tiền điều kiện
+
+* Nhân viên đã đăng nhập vào hệ thống (`VaiTro = 'GiaoHang'`).
+* Đơn hàng ở trạng thái **“Chờ giao”** hoặc **“Đang giao”**.
+* Hệ thống đã có thông tin khách hàng, địa chỉ giao hàng, và phương thức thanh toán.
+
+---
+
+## 🔷 4. Hậu điều kiện
+
+* Trạng thái đơn hàng được cập nhật chính xác trong CSDL (`HoaDon` hoặc `PhieuThueSach`).
+* Lưu lịch sử giao hàng vào bảng `GiaoHangLichSu`.
+* Nếu giao thất bại → gửi thông báo cho quản lý hoặc nhân viên CSKH.
+
+---
+
+## 🔷 5. Quy trình nghiệp vụ (Luồng xử lý)
+
+| Bước | Hành động                                          | Kết quả / Xử lý hệ thống                                           |
+| ---- | -------------------------------------------------- | ------------------------------------------------------------------ |
+| 1    | Nhân viên truy cập trang “Giao hàng”               | Hệ thống hiển thị danh sách đơn cần giao                           |
+| 2    | Chọn đơn hàng để xem chi tiết                      | Hiển thị thông tin: khách, địa chỉ, số điện thoại, loại đơn        |
+| 3    | Nhấn “Nhận giao”                                   | Cập nhật trạng thái: `Đang giao` + lưu `IdNhanVienGiao`            |
+| 4    | Giao hàng thực tế                                  | Nhân viên có thể cập nhật ghi chú, chụp ảnh biên nhận (nếu cần)    |
+| 5    | Khách xác nhận nhận hàng                           | Hệ thống cập nhật trạng thái: `Đã giao / Hoàn tất`                 |
+| 6    | Giao thất bại (không liên hệ được, sai địa chỉ...) | Nhân viên chọn lý do thất bại → hệ thống tạo thông báo cho quản lý |
+
+---
+
+## 🔷 6. Trạng thái giao hàng
+
+| Trạng thái        | Mô tả                           | Người cập nhật      |
+| ----------------- | ------------------------------- | ------------------- |
+| **Chờ giao**      | Đơn mới tạo, chưa phân công     | Hệ thống            |
+| **Đang giao**     | Nhân viên đã nhận đơn           | Nhân viên giao hàng |
+| **Đã giao**       | Khách nhận thành công           | Nhân viên giao hàng |
+| **Giao thất bại** | Không thể giao (có lý do)       | Nhân viên giao hàng |
+| **Hoàn tất**      | Đã xác nhận thu tiền / trả sách | Thu ngân / Hệ thống |
+
+---
+
+## 🔷 7. Thiết kế cơ sở dữ liệu
+
+### 🗂️ **Bảng GiaoHang**
+
+```sql
+CREATE TABLE GiaoHang (
+    IdGiaoHang INT IDENTITY PRIMARY KEY,
+    IdDonHang INT NOT NULL,        -- IdHoaDon hoặc IdPhieuThueSach
+    LoaiDon NVARCHAR(20) NOT NULL, -- 'Mon' hoặc 'Sach'
+    IdNhanVien INT NOT NULL,
+    NgayNhan DATETIME NULL,
+    NgayHoanThanh DATETIME NULL,
+    TrangThai NVARCHAR(50) DEFAULT N'Chờ giao',
+    GhiChu NVARCHAR(500) NULL,
+    HinhAnhXacNhan NVARCHAR(500) NULL
+);
+```
+
+---
+
+### 🗂️ **Bảng GiaoHangLichSu** *(nếu muốn lưu từng cập nhật trạng thái)*
+
+```sql
+CREATE TABLE GiaoHangLichSu (
+    IdLichSu INT IDENTITY PRIMARY KEY,
+    IdGiaoHang INT,
+    TrangThai NVARCHAR(50),
+    ThoiGian DATETIME DEFAULT GETDATE(),
+    GhiChu NVARCHAR(500)
+);
+```
+
+---
+
+## 🔷 8. Giao diện Web (UI đề xuất)
+
+### 🖥️ **1️⃣ Trang danh sách giao hàng – GiaoHangView.cshtml**
+
+Hiển thị danh sách đơn hàng giao:
+
+| Mã đơn  | Loại đơn | Khách hàng | Địa chỉ            | Thời gian | Trạng thái | Thao tác              |
+| ------- | -------- | ---------- | ------------------ | --------- | ---------- | --------------------- |
+| HD_023  | Món      | Nguyễn An  | 25 Nguyễn Văn Linh | 10:20 AM  | Chờ giao   | [Nhận giao]           |
+| PTS_015 | Sách     | Lê Bình    | 42 Trưng Nữ Vương  | 09:45 AM  | Đang giao  | [Chi tiết] [Hoàn tất] |
+
+**Thanh lọc & tìm kiếm:**
+
+* Bộ lọc: `Loại đơn`, `Trạng thái`, `Ngày`, `Khách hàng`.
+* Nút “Tải lại” để refresh danh sách.
+
+---
+
+### 🖥️ **2️⃣ Trang chi tiết giao hàng – GiaoHangChiTietView.cshtml**
+
+Hiển thị chi tiết đơn:
+
+```html
+<h3>Chi tiết giao hàng</h3>
+<p><strong>Khách hàng:</strong> @Model.TenKhach</p>
+<p><strong>Địa chỉ:</strong> @Model.DiaChi</p>
+<p><strong>Điện thoại:</strong> @Model.SoDienThoai</p>
+<p><strong>Loại đơn:</strong> @Model.LoaiDon</p>
+<p><strong>Ghi chú đơn:</strong> @Model.GhiChu</p>
+
+<form method="post" enctype="multipart/form-data">
+    <label>Cập nhật trạng thái:</label>
+    <select name="TrangThai" class="form-select">
+        <option>Đang giao</option>
+        <option>Đã giao</option>
+        <option>Giao thất bại</option>
+    </select>
+
+    <textarea name="GhiChu" class="form-control mt-2" placeholder="Ghi chú..."></textarea>
+
+    <label>Ảnh xác nhận giao hàng:</label>
+    <input type="file" name="HinhAnh" class="form-control mt-2" />
+
+    <button type="submit" class="btn btn-success mt-3">Cập nhật</button>
+</form>
+```
+
+---
+
+### 🖥️ **3️⃣ Trang lịch sử giao hàng của nhân viên – GiaoHangLichSuView.cshtml**
+
+| Mã giao | Đơn hàng | Ngày nhận | Ngày hoàn tất | Trạng thái    | Ghi chú              |
+| ------- | -------- | --------- | ------------- | ------------- | -------------------- |
+| GH001   | HD_023   | 10:20     | 11:10         | Đã giao       | Thành công           |
+| GH002   | PTS_015  | 09:45     | 10:30         | Giao thất bại | Khách không có ở nhà |
+
+---
+
+## 🔷 9. Chức năng của GiaoHangController.cs
+
+| Hành động                                        | Mô tả                                        | Gọi đến View                 |
+| ------------------------------------------------ | -------------------------------------------- | ---------------------------- |
+| `Index()`                                        | Hiển thị danh sách đơn giao                  | `GiaoHangView.cshtml`        |
+| `ChiTiet(int id)`                                | Hiển thị chi tiết đơn giao                   | `GiaoHangChiTietView.cshtml` |
+| `[HttpPost] CapNhatTrangThai(GiaoHangDto model)` | Cập nhật trạng thái đơn, lưu ảnh xác nhận    | Quay lại `Index()`           |
+| `LichSu()`                                       | Xem lịch sử giao hàng của nhân viên hiện tại | `GiaoHangLichSuView.cshtml`  |
+
+---
+
+## 🔷 10. Quy trình cập nhật dữ liệu
+
+1️⃣ Khi nhân viên nhấn “Nhận giao”:
+→ Cập nhật `TrangThai = 'Đang giao'`, `NgayNhan = GETDATE()`, `IdNhanVien = ...`.
+
+2️⃣ Khi “Đã giao”:
+→ Cập nhật `TrangThai = 'Đã giao'`, `NgayHoanThanh = GETDATE()`.
+→ Nếu đơn là món: cập nhật `HoaDon.TrangThai = 'Hoàn tất'`.
+→ Nếu đơn là sách: cập nhật `PhieuThueSach.TrangThai = 'Đang thuê'`.
+
+3️⃣ Khi “Giao thất bại”:
+→ Cập nhật `TrangThai = 'Giao thất bại'`, `GhiChu = '...'`.
+→ Gửi thông báo cho quản lý / CSKH để xử lý.
+
+---
+
+## 🔷 11. Báo cáo quản lý giao hàng
+
+Thống kê từ `GiaoHang`:
+
+```sql
+SELECT 
+    NV.TenNhanVien,
+    COUNT(*) AS TongDon,
+    SUM(CASE WHEN TrangThai = N'Đã giao' THEN 1 ELSE 0 END) AS ThanhCong,
+    SUM(CASE WHEN TrangThai = N'Giao thất bại' THEN 1 ELSE 0 END) AS ThatBai,
+    ROUND(SUM(CASE WHEN TrangThai = N'Đã giao' THEN 1.0 ELSE 0 END) / COUNT(*) * 100, 1) AS TyLeThanhCong
+FROM GiaoHang GH
+JOIN NhanVien NV ON GH.IdNhanVien = NV.IdNhanVien
+GROUP BY NV.TenNhanVien;
+```
+
+---
+
+## ✅ 12. Kết luận thiết kế
+
+| Thành phần                                | Mô tả                                      | Trạng thái |
+| ----------------------------------------- | ------------------------------------------ | ---------- |
+| **Màn hình danh sách giao hàng**          | Hiển thị các đơn cần giao                  | ✅          |
+| **Màn hình chi tiết giao hàng**           | Cho phép cập nhật trạng thái, ghi chú, ảnh | ✅          |
+| **Lưu lịch sử**                           | Ghi lại toàn bộ quá trình giao             | ✅          |
+| **Báo cáo hiệu suất nhân viên giao hàng** | Tổng hợp tỉ lệ thành công                  | ✅          |
+| **Tích hợp loại đơn (món / sách)**        | Dùng cột `LoaiDon` để xác định             | ✅          |
+
+---
+
+## 💡 Gợi ý mở rộng
+
+* Thêm bản đồ Google Map (hoặc LeafletJS) để xem **vị trí giao hàng**.
+* Cho phép nhân viên cập nhật trạng thái **qua điện thoại (QR code)** khi đến nơi.
+* Gửi SMS / Email tự động khi đơn “Đang giao” hoặc “Đã giao thành công”.
+* Tích hợp với trang “Theo dõi đơn hàng” của khách hàng (real-time).
+
+---
+
+👉 Bạn có muốn mình **tạo sơ đồ Use Case + Sequence Diagram cho module “Giao hàng”**,
+gồm cả **nhân viên – hệ thống – khách hàng**, để bạn chèn vào phần báo cáo UML (đồ án / tài liệu kỹ thuật)?

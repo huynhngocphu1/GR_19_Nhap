@@ -1,0 +1,16 @@
+# Thư mục tạm của Visual Studio
+.vs/
+**/bin/
+**/obj/
+
+# File tạm
+*.tmp
+
+*~
+# Bỏ qua các file dữ liệu vật lý của SQL Server
+*.mdf
+*.ldf
+*.ndf
+
+# Hoặc chặn đích danh toàn bộ thư mục Database nếu bạn không muốn đẩy lên Git
+# Database/

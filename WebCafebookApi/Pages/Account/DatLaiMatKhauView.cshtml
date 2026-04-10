@@ -1,0 +1,72 @@
+﻿@page "/Account/ResetPassword"
+@* SỬA: Namespace *@
+@model WebCafebookApi.Pages.Account.DatLaiMatKhauViewModel
+@{
+    ViewData["Title"] = "Đặt Lại Mật Khẩu";
+    Layout = null; // Dùng layout login
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Cafebook</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="login-page-body">
+
+    <div class="login-wrapper">
+        <div class="login-container">
+            <div class="login-brand-col d-none d-md-flex">
+                <img src="/images/logo.png" alt="Cafebook Logo">
+                <h1 class="mb-2">Cafebook</h1>
+                <p class="fs-5 opacity-75">Khôi phục tài khoản</p>
+            </div>
+
+            <div class="login-form-col">
+                <h2>@ViewData["Title"]</h2>
+                <p class="text-muted">Nhập mật khẩu mới cho tài khoản của bạn.</p>
+
+                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                {
+                    <div class="alert alert-danger">@Model.ErrorMessage</div>
+                }
+
+                @if (string.IsNullOrEmpty(Model.ErrorMessage))
+                {
+                    <form method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-2" role="alert"></div>
+                        <input type="hidden" asp-for="Input.Email" />
+                        <input type="hidden" asp-for="Input.Token" />
+
+                        <div class="form-floating-material">
+                            <input asp-for="Input.NewPassword" type="password" class="form-control" autocomplete="new-password" aria-required="true" placeholder=" " />
+                            <label asp-for="Input.NewPassword" class="form-label"></label>
+                            <span class="material-symbols-outlined">lock</span>
+                            <span asp-validation-for="Input.NewPassword" class="text-danger small"></span>
+                        </div>
+
+                        <div class="form-floating-material">
+                            <input asp-for="Input.ConfirmPassword" type="password" class="form-control" autocomplete="new-password" aria-required="true" placeholder=" " />
+                            <label asp-for="Input.ConfirmPassword" class="form-label"></label>
+                            <span class="material-symbols-outlined">lock_reset</span>
+                            <span asp-validation-for="Input.ConfirmPassword" class="text-danger small"></span>
+                        </div>
+
+                        <button type="submit" class="w-100 btn btn-lg btn-primary mt-3">Đặt Lại Mật Khẩu</button>
+                    </form>
+                }
+                else
+                {
+                    <a asp-page="/Account/QuenMatKhauView" class="btn btn-primary">Yêu cầu mã mới</a>
+                }
+            </div>
+        </div>
+    </div>
+
+    <partial name="_ValidationScriptsPartial" />
+</body>
+</html>

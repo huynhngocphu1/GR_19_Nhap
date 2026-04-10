@@ -1,0 +1,26 @@
+Backend: C#.
+Frontend: xaml.
+Database: SQL Server Management Studio 21.
+IDE: Visual Studio Insiders.
+tên projec: AppCafebookApi.
+nền tảng: WPF App, Net Framework 8.0.
+////////////////
+Backend: C#.
+Frontend: cshtml.
+Database: SQL Server Management Studio 21.
+IDE: Visual Studio Insiders.
+tên projec: WebCafebookApi.
+nền tảng: ASP.NET Core Web App (Razor Pages), Net Framework 8.0.
+///////////////////////
+Backend: C#.
+Database: SQL Server Management Studio 21.
+IDE: Visual Studio Insiders.
+tên projec: CafebookApi.
+nền tảng: ASP.NET Core Web API, Net Framework 8.0.
+//////////////////////////
+Backend: C#.
+Database: SQL Server Management Studio 21.
+IDE: Visual Studio Insiders.
+tên projec: CafebookModel.
+nền tảng: Class Library. Net Framework 8.0.
+

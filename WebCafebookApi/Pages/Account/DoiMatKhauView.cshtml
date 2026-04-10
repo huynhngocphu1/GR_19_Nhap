@@ -1,0 +1,55 @@
+﻿@page "/Account/DoiMatKhauView"
+@model WebCafebookApi.Pages.Account.DoiMatKhauViewModel
+@{
+    ViewData["Title"] = "Đổi mật khẩu";
+    Layout = "_Layout_Account"; // Sử dụng layout tài khoản
+}
+
+<h3 class="page-title-account">@ViewData["Title"]</h3>
+<p class="page-lead-account">Để bảo mật, hãy chọn một mật khẩu mạnh và không sử dụng lại ở nơi khác.</p>
+
+<hr class="my-4" />
+
+<div class="row">
+    <div class="col-md-8">
+        @if (!string.IsNullOrEmpty(Model.PasswordSuccessMessage))
+        {
+            <div class="alert alert-success">@Model.PasswordSuccessMessage</div>
+        }
+        @if (!string.IsNullOrEmpty(Model.PasswordErrorMessage))
+        {
+            <div class="alert alert-danger">@Model.PasswordErrorMessage</div>
+        }
+
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+            <div class="material-input-group mb-3">
+                <label asp-for="PasswordInput.MatKhauCu" class="form-label fw-bold"></label>
+                <input asp-for="PasswordInput.MatKhauCu" class="material-input" type="password" />
+                <span asp-validation-for="PasswordInput.MatKhauCu" class="text-danger small"></span>
+            </div>
+
+            <div class="material-input-group mb-3">
+                <label asp-for="PasswordInput.MatKhauMoi" class="form-label fw-bold"></label>
+                <input asp-for="PasswordInput.MatKhauMoi" class="material-input" type="password" />
+                <span asp-validation-for="PasswordInput.MatKhauMoi" class="text-danger small"></span>
+            </div>
+
+            <div class="material-input-group mb-3">
+                <label asp-for="PasswordInput.XacNhanMatKhauMoi" class="form-label fw-bold"></label>
+                <input asp-for="PasswordInput.XacNhanMatKhauMoi" class="material-input" type="password" />
+                <span asp-validation-for="PasswordInput.XacNhanMatKhauMoi" class="text-danger small"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary mt-3">
+                <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 4px;">lock_reset</span>
+                Đổi Mật Khẩu
+            </button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,236 @@
+﻿<Window x:Class="AppCafebookApi.View.quanly.ManHinhQuanly"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AppCafebookApi.View.quanly"
+        mc:Ignorable="d" 
+        Title="Cafebook - Copyright by © Lâm Chu Bảo Toàn | Contact: [lamchubaotoan@gmail.com]" Height="800" Width="1440"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Segoe UI"
+        WindowState="Maximized"
+        Loaded="Window_Loaded">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="PrimaryBrownBrush" Color="#6F4E37"/>
+        <SolidColorBrush x:Key="DarkBrownBrush" Color="#4E342E"/>
+        <SolidColorBrush x:Key="AccentOrangeBrush" Color="#D27D2D"/>
+        <SolidColorBrush x:Key="LightCreamBrush" Color="#FFF8E1"/>
+        <SolidColorBrush x:Key="WhiteTextBrush" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="SubtleWhiteTextBrush" Color="#BCAAA4"/>
+        <SolidColorBrush x:Key="HoverBrownBrush" Color="#8D6E63"/>
+
+        <Geometry x:Key="IconDashboard">M13,3V9H21V3M13,21H21V11H13M3,21H11V15H3M3,13H11V3H3V13Z</Geometry>
+        <Geometry x:Key="IconCoffee">M16,5H14V3H12V5H10A3,3 0 0,0 7,8V14H18V8A3,3 0 0,0 15,5M20,19H4V17H20V19Z</Geometry>
+        <Geometry x:Key="IconTable">M4,6H20V8H4V6M4,10H20V12H4V10M4,14H20V16H4V14M4,18H20V20H4V18Z</Geometry>
+        <Geometry x:Key="IconWarehouse">M12,3L2,8V21H22V8L12,3M19,19H15V13H9V19H5V9.4L12,5.5L19,9.4V19Z</Geometry>
+        <Geometry x:Key="IconOrder">M17,17H7V15H17M17,13H7V11H17M17,9H7V7H17M19,3H5C3.9,3 3,3.9 3,5V19C3,20.1 3.9,21 5,21H19C20.1,21 21,20.1 21,19V5C21,3.9 20.1,3 19,3Z</Geometry>
+        <Geometry x:Key="IconBook">M18,2H6C4.9,2 4,2.9 4,4V20C4,21.1 4.9,22 6,22H18C19.1,22 20,21.1 20,20V4C20,2.9 19.1,2 18,2M11,4H13V12L11,10.8L9,12V4H11Z</Geometry>
+        <Geometry x:Key="IconUsers">M16,13C17.7,13 21,13.9 21,15.5V17H11V15.5C11,13.9 14.3,13 16,13M8,13C9.7,13 13,13.9 13,15.5V17H3V15.5C3,13.9 6.3,13 8,13M8,11.5A3.5,3.5 0 0,0 11.5,8A3.5,3.5 0 0,0 8,4.5A3.5,3.5 0 0,0 4.5,8A3.5,3.5 0 0,0 8,11.5M16,11.5A3.5,3.5 0 0,0 19.5,8A3.5,3.5 0 0,0 16,4.5A3.5,3.5 0 0,0 12.5,8A3.5,3.5 0 0,0 16,11.5Z</Geometry>
+        <Geometry x:Key="IconCustomer">M12,5.5A3.5,3.5 0 0,1 15.5,9A3.5,3.5 0 0,1 12,12.5A3.5,3.5 0 0,1 8.5,9A3.5,3.5 0 0,1 12,5.5M5,8C5,5.61 6.79,4 9,4C11.21,4 13,5.61 13,8C13,10.39 11.21,12 9,12C6.79,12 5,10.39 5,8M9,13C11.67,13 17,14.34 17,17V20H1V17C1,14.34 6.33,13 9,13M17.75,10.5A3.75,3.75 0 0,0 21.5,6.75A3.75,3.75 0 0,0 17.75,3A3.75,3.75 0 0,0 14,6.75A3.75,3.75 0 0,0 17.75,10.5M14,17.25C14,16.5 15.17,16 16.5,16C17.83,16 19,16.5 19,17.25V18H14V17.25Z</Geometry>
+        <Geometry x:Key="IconNotification">M12,22C13.1,22 14,21.1 14,20H10C10,21.1 10.9,22 12,22M18,16V11C18,7.93 16.36,5.36 13.5,4.68V4C13.5,3.17 12.83,2.5 12,2.5C11.17,2.5 10.5,3.17 10.5,4V4.68C7.63,5.36 6,7.93 6,11V16L4,18V19H20V18L18,16Z</Geometry>
+        <Geometry x:Key="IconLogout">M16,17V14H9V12H16V9L20,13L16,17M14,2A2,2 0 0,1 16,4V6H14V4H5V20H14V18H16V20A2,2 0 0,1 14,22H5A2,2 0 0,1 3,20V4A2,2 0 0,1 5,2H14Z</Geometry>
+        <Geometry x:Key="IconPromotion">M12.41,2.58C12.03,2.2 11.53,2 11,2H4C2.9,2 2,2.9 2,4V11C2,11.53 2.2,12.03 2.59,12.41L12.42,22.24C12.81,22.63 13.44,22.63 13.83,22.24L22.24,13.82C22.63,13.43 22.63,12.8 22.24,12.41L12.41,2.58M7,7A1.5,1.5 0 0,1 5.5,8.5A1.5,1.5 0 0,1 4,7A1.5,1.5 0 0,1 5.5,5.5A1.5,1.5 0 0,1 7,7Z</Geometry>
+        <Geometry x:Key="IconProfile">M12,12A5,5 0 0,1 7,7A5,5 0 0,1 12,2A5,5 0 0,1 17,7A5,5 0 0,1 12,12M12,14C14.67,14 20,15.33 20,18V20H4V18C4,15.33 9.33,14 12,14Z</Geometry>
+        <Geometry x:Key="IconLeave">M19,3H18V1H16V3H8V1H6V3H5C3.89,3 3,3.89 3,5V19C3,20.1 3.9,21 5,21H19C20.1,21 21,20.1 21,19V5C21,3.89 20.1,3 19,3M19,19H5V10H19V19M10,14V12H7V14H10M14,14V12H11V14H14M18,14V12H15V14H18Z</Geometry>
+        <Geometry x:Key="IconPayroll">M20,6H4V4H20V6M20,10H4V8H20V10M18,14H6V12H18V14M18,18H6V16H18V18M19,20H5C3.89,20 3,19.1 3,18V3C3,1.89 3.89,1 5,1H19C20.1,1 21,1.89 21,3V18C21,19.1 20.1,20 19,20Z</Geometry>
+
+        <Geometry x:Key="IconReview">M12,17.27L18.18,21L17,14.64L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7,14.64L5.82,21L12,17.27Z</Geometry>
+
+
+        <Style x:Key="NavToggleButton" TargetType="ToggleButton">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource SubtleWhiteTextBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="5" Margin="8,2">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border x:Name="indicator" Width="4" Height="20" Background="Transparent" CornerRadius="2" VerticalAlignment="Center" Margin="-20,0,10,0"/>
+                                <Viewbox Grid.Column="0" Width="16" Height="16" Margin="0,0,15,0">
+                                    <Path Data="{Binding Path=Tag, RelativeSource={RelativeSource TemplatedParent}}" Fill="{TemplateBinding Foreground}" Stretch="Uniform" VerticalAlignment="Center"/>
+                                </Viewbox>
+                                <ContentPresenter Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,1,0,0"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource HoverBrownBrush}"/>
+                                <Setter Property="Foreground" Value="{StaticResource WhiteTextBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource DarkBrownBrush}"/>
+                                <Setter Property="Foreground" Value="{StaticResource WhiteTextBrush}"/>
+                                <Setter TargetName="indicator" Property="Background" Value="{StaticResource AccentOrangeBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="FooterButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource SubtleWhiteTextBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="5" Margin="8,2">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource HoverBrownBrush}"/>
+                                <Setter Property="Foreground" Value="{StaticResource WhiteTextBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0" Background="{StaticResource PrimaryBrownBrush}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Margin="20">
+                    <Border x:Name="AvatarBorder"
+                            Height="70" Width="70"
+                            Background="{StaticResource LightCreamBrush}"
+                            CornerRadius="35"
+                            Margin="0,0,0,10">
+                        <Viewbox Margin="12,10,18,20">
+                            <Path Data="{StaticResource IconProfile}" Fill="{StaticResource PrimaryBrownBrush}">
+                                <Path.RenderTransform>
+                                    <TranslateTransform Y="1.5" />
+                                </Path.RenderTransform>
+                            </Path>
+                        </Viewbox>
+                    </Border>
+                    <TextBlock x:Name="txtAdminName" Text="Admin" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource WhiteTextBrush}" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="txtUserRole" Text="Quản trị viên" FontSize="13" Foreground="{StaticResource SubtleWhiteTextBrush}" HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <ToggleButton x:Name="btnTongQuan" Content="Tổng quan &amp; Báo cáo" Style="{StaticResource NavToggleButton}" Tag="{StaticResource IconDashboard}" Click="NavButton_Click" IsChecked="True"/>
+                        <ToggleButton x:Name="btnBan" Content="Quản lý Bàn" Style="{StaticResource NavToggleButton}" Tag="{StaticResource IconTable}" Click="NavButton_Click"/>
+                        <ToggleButton x:Name="btnSanPham" Content="Quản lý Sản phẩm" Style="{StaticResource NavToggleButton}" Tag="{StaticResource IconCoffee}" Click="NavButton_Click"/>
+                        <ToggleButton x:Name="btnKho" Content="Quản lý Kho" Style="{StaticResource NavToggleButton}" Tag="{StaticResource IconWarehouse}" Click="NavButton_Click"/>
+                        <ToggleButton x:Name="btnDonHang" Content="Quản lý Đơn hàng" Style="{StaticResource NavToggleButton}" Tag="{StaticResource IconOrder}" Click="NavButton_Click"/>
+                        <ToggleButton x:Name="btnSach" Content="Quản lý Sách" Style="{StaticResource NavToggleButton}" Tag="{StaticResource IconBook}" Click="NavButton_Click"/>
+                        <ToggleButton x:Name="btnLuong" Content="Quản lý Lương" Style="{StaticResource NavToggleButton}" Tag="{StaticResource IconPayroll}" Click="NavButton_Click"/>
+                        <ToggleButton x:Name="btnNhanSu" Content="Quản lý Nhân sự" Style="{StaticResource NavToggleButton}" Tag="{StaticResource IconUsers}" Click="NavButton_Click"/>
+                        <ToggleButton x:Name="btnKhachHang" Content="Quản lý KH &amp; KM" Style="{StaticResource NavToggleButton}" Tag="{StaticResource IconPromotion}" Click="NavButton_Click"/>
+
+                        <ToggleButton x:Name="btnDanhGia" Content="Quản lý Đánh Giá" Style="{StaticResource NavToggleButton}" Tag="{StaticResource IconReview}" Click="NavButton_Click"/>
+
+                    </StackPanel>
+                </ScrollViewer>
+
+                <StackPanel Grid.Row="2" VerticalAlignment="Bottom" Margin="0,0,0,5">
+                    <Separator Margin="15" Background="{StaticResource HoverBrownBrush}"/>
+                    <Button x:Name="btnThongBao" Style="{StaticResource FooterButton}" Click="BtnThongBao_Click" ToolTip="Xem thông báo mới">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Viewbox Grid.Column="0" Width="16" Height="16" Margin="0,0,15,0">
+                                <Path Data="{StaticResource IconNotification}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                            </Viewbox>
+                            <TextBlock Grid.Column="1" Text="Thông báo" VerticalAlignment="Center" Margin="0,1,0,0"/>
+                            <Border Grid.Column="2" x:Name="BadgeThongBao" Background="Red" CornerRadius="10" Padding="5,1" MinWidth="20" Visibility="Collapsed" VerticalAlignment="Center">
+                                <TextBlock x:Name="lblSoThongBao" Text="0" Foreground="White" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+                    </Button>
+                    <Button x:Name="btnDangXuat" Style="{StaticResource FooterButton}" Click="BtnDangXuat_Click"
+                            Background="{StaticResource AccentOrangeBrush}"
+                            Foreground="{StaticResource WhiteTextBrush}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Viewbox Grid.Column="0" Width="16" Height="16" Margin="0,0,15,0">
+                                <Path Data="{StaticResource IconLogout}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                            </Viewbox>
+                            <TextBlock Grid.Column="1" Text="Đăng xuất" VerticalAlignment="Center" Margin="0,1,0,0"/>
+                        </Grid>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Border Grid.Column="1" Background="{StaticResource LightCreamBrush}">
+            <Border.Effect>
+                <DropShadowEffect ShadowDepth="2" Direction="270" Color="Black" Opacity="0.1" BlurRadius="10"/>
+            </Border.Effect>
+            <Frame x:Name="MainFrame" NavigationUIVisibility="Hidden"/>
+        </Border>
+
+        <Popup x:Name="PopupThongBao" IsOpen="False" StaysOpen="False" PlacementTarget="{Binding ElementName=btnThongBao}"
+               Placement="Top" AllowsTransparency="True" PopupAnimation="Fade"
+               Panel.ZIndex="1" Margin="5,0,0,0">
+            <Border Background="White" BorderBrush="#DDD" BorderThickness="1" CornerRadius="8"
+                    Width="350" MaxHeight="400">
+                <Border.Effect>
+                    <DropShadowEffect ShadowDepth="2" Color="#CCC" Opacity="0.5" BlurRadius="10"/>
+                </Border.Effect>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Thông báo mới" Grid.Row="0" FontWeight="Bold" FontSize="16" Margin="15" Foreground="{StaticResource DarkBrownBrush}"/>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="icThongBaoPopup">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="#EEE" BorderThickness="0,0,0,1" Padding="15,10"
+                                            x:Name="ThongBaoItemBorder" MouseLeftButtonUp="ThongBaoItem_MouseLeftButtonUp"
+                                            Background="Transparent" Cursor="Hand">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding NoiDung}" TextWrapping="Wrap"/>
+                                            <TextBlock FontStyle="Italic" FontSize="11" Foreground="Gray" Margin="0,5,0,0">
+                                                <Run Text="{Binding TenNhanVien}"/> - <Run Text="{Binding ThoiGianTao, StringFormat='HH:mm dd/MM'}"/>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Popup>
+    </Grid>
+</Window>

@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/Database/" />
+  <Project Path="../CafebookApi/CafebookApi.csproj" />
+  <Project Path="../CafebookModel/CafebookModel.csproj" />
+  <Project Path="../WebCafebookApi/WebCafebookApi.csproj" />
+  <Project Path="AppCafebookApi/AppCafebookApi.csproj" />
+</Solution>

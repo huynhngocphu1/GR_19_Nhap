@@ -1,0 +1,289 @@
+Tốt — mình thấy bạn đang cung cấp **toàn bộ cấu trúc solution AppCafebookApi (WPF + Web + API)** gồm:
+
+* **WPF App (AppCafebookApi)** – giao diện nhân viên & quản lý.
+* **WebCafeBookApi** – phần web client (người dùng/khách).
+* **CafebookApi** – ASP.NET Core API backend.
+* **CafebookModel** – model/data shared.
+
+Từ các ảnh & OCR, mình tổng hợp và đánh giá:
+CSDL, controllers và views của bạn đã bao phủ gần như toàn bộ chức năng vận hành quán Café – Bookstore, **tuy nhiên vẫn còn thiếu vài module chức năng cấp hệ thống**, cụ thể:
+
+---
+
+## 🔍 1. Các nhóm chức năng đã có (đủ, hoàn chỉnh)
+
+✅ **Nhân viên**
+
+* Chấm công, lịch làm việc, lương, phiếu lương.
+* Gọi món, chế biến, thanh toán, đặt bàn.
+* Giao hàng, thuê sách.
+
+✅ **Quản lý**
+
+* Báo cáo doanh thu, hiệu suất, tồn kho, nhân sự, sách, sản phẩm.
+* Quản lý khách hàng, nhân viên, khuyến mãi, phân quyền, vai trò.
+* Nhập kho, xuất hủy, nhà cung cấp, kiểm kho.
+
+✅ **Web**
+
+* Đăng ký, đăng nhập, thuê sách, đặt bàn, giỏ hàng, thanh toán.
+* Trang chủ, liên hệ, chính sách, tìm kiếm sách, lịch sử thuê.
+
+---
+
+## ⚠️ 2. Các chức năng **thiếu hoặc chưa có trong CSDL/Controller**
+
+| Nhóm                                           | Thiếu                                                                          | Mô tả / Gợi ý bổ sung                                                                    |
+| ---------------------------------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| **Hỗ trợ & Chat AI**                           | ❌ `ChatController`, `HoTroController`, `ThongBaoHoTro`                         | Phục vụ chức năng Chat hỗ trợ AI + nhân viên (chuyển yêu cầu khi AI không trả lời được). |
+| **Đánh giá / phản hồi**                        | ❌ `DanhGiaController`, bảng `DanhGia`                                          | Cho phép khách hàng đánh giá sách / món sau khi hoàn tất đơn.                            |
+| **Giỏ hàng nâng cao (multi-item)**             | ⚠️ Có `GioHangController` nhưng chưa rõ lưu đa loại                            | Cần kiểm tra bảng `GioHang` có hỗ trợ cả sách và món (`LoaiHang`).                       |
+| **Theo dõi đơn hàng**                          | ⚠️ `DonMuaController` chưa thấy trong ảnh                                      | Nên có bảng `DonMua`, `ChiTietDonMua` cho lịch sử web.                                   |
+| **Báo cáo thông minh (AI hỗ trợ quản lý)**     | ❌ Chưa có `ChatDecisionController` / `PhanTichController`                      | Phục vụ chức năng “Chat hỗ trợ ra quyết định” của quản lý WPF.                           |
+| **Thông báo hệ thống (notification)**          | ⚠️ `ThongBaoController` có, nhưng chưa thấy bảng `ThongBaoHoTro`               | Nên bổ sung để nhân viên nhận thông báo chat/hỗ trợ.                                     |
+| **Báo cáo giao hàng chi tiết**                 | ⚠️ Có `GiaoHangController`, nhưng cần thêm bảng `GiaoHang` và `GiaoHangLichSu` | Lưu tiến trình từng đơn và kết quả thực tế.                                              |
+| **Phản hồi khách hàng (contact/feedback)**     | ⚠️ Có `LienHeController`, nhưng chưa có `LienHe` table chi tiết                | Nên lưu lịch sử phản hồi hỗ trợ.                                                         |
+| **Tự động hóa (background tasks)**             | ✅ Có `BackgroundJobController`                                                 | Nên mở rộng: gửi email nhắc trả sách, thống kê định kỳ.                                  |
+| **Phân tích dữ liệu / ra quyết định (AI WPF)** | ❌ Chưa có module `PhanTichController`, `BaoCaoThongMinhController`             | Phục vụ AI đọc và tổng hợp từ DB.                                                        |
+| **Cảnh báo tồn kho thấp / doanh thu giảm**     | ❌ Chưa thấy `AlertController` hoặc bảng `ThongBaoCanhBao`                      | Để phục vụ dashboard AI.                                                                 |
+
+---
+
+## 🧩 3. Các bảng cần thêm trong Database
+
+(để hoàn thiện đầy đủ tính năng chat – hỗ trợ – đánh giá – báo cáo)
+
+| Bảng              | Mục đích                                                       |
+| ----------------- | -------------------------------------------------------------- |
+| `DanhGia`         | Lưu đánh giá khách hàng (sách / món / dịch vụ)                 |
+| `ChatLichSu`      | Lưu toàn bộ nội dung chat AI và nhân viên                      |
+| `ThongBaoHoTro`   | Ghi lại yêu cầu hỗ trợ mà AI không xử lý được                  |
+| `GiaoHang`        | Quản lý trạng thái giao hàng (chờ / đang / đã giao / thất bại) |
+| `GiaoHangLichSu`  | Lưu chi tiết thay đổi trạng thái giao hàng                     |
+| `DonMua`          | Lưu đơn hàng web (kết hợp sách + món)                          |
+| `ChiTietDonMua`   | Chi tiết sản phẩm trong đơn hàng                               |
+| `ThongBaoCanhBao` | Cảnh báo hệ thống (tồn kho, doanh thu, đánh giá thấp)          |
+| `PhanTichYeuCau`  | Ghi log truy vấn / câu hỏi mà quản lý gửi cho AI               |
+| `LienHeKhachHang` | Lưu yêu cầu liên hệ / phản hồi khách hàng                      |
+
+---
+
+## 🧠 4. Gợi ý bổ sung Controller và View tương ứng
+
+| Controller mới                    | View tương ứng                                    | Chức năng                                     |
+| --------------------------------- | ------------------------------------------------- | --------------------------------------------- |
+| `DanhGiaController.cs`            | `DanhGiaView.cshtml`                              | Gửi và xem đánh giá sau khi đặt hàng          |
+| `HoTroController.cs`              | `ChatHoTroView.cshtml` / `NhanVienHoTroView.xaml` | Chat hỗ trợ khách hàng, AI fallback nhân viên |
+| `PhanTichController.cs`           | `PhanTichView.xaml` (WPF)                         | Chat AI ra quyết định cho quản lý             |
+| `ThongBaoHoTroController.cs`      | `ThongBaoNhanVienView.xaml`                       | Danh sách yêu cầu hỗ trợ nhân viên            |
+| `GiaoHangController.cs` (mở rộng) | `GiaoHangView.xaml` / `ChiTietGiaoHangView.xaml`  | Theo dõi, cập nhật trạng thái giao hàng       |
+| `DonMuaController.cs`             | `DonMuaView.cshtml`                               | Quản lý lịch sử đơn hàng web                  |
+| `ChiTietDonMuaController.cs`      | `ChiTietDonMuaView.cshtml`                        | Xem chi tiết từng đơn                         |
+| `ThongBaoCanhBaoController.cs`    | `ThongBaoView.xaml`                               | Thông báo cảnh báo thông minh                 |
+| `LienHeController.cs` (mở rộng)   | `LienHeView.cshtml`                               | Quản lý phản hồi khách hàng                   |
+
+---
+
+## ✅ 5. Kết luận tổng hợp
+
+| Loại module                               | Trạng thái                      | Mức độ hoàn thiện                                            |
+| ----------------------------------------- | ------------------------------- | ------------------------------------------------------------ |
+| Quản lý quán (sách – món – bàn – nhân sự) | ✅ Đầy đủ                        | Hoàn thiện                                                   |
+| Thuê sách & đặt món                       | ✅ Hoàn thiện                    | Đã tích hợp                                                  |
+| Báo cáo doanh thu / tồn kho / nhân sự     | ✅ Có                            | Cần mở rộng AI phân tích                                     |
+| Giao hàng                                 | ⚠️ Có UI, thiếu bảng & chi tiết | Nên thêm `GiaoHang`, `GiaoHangLichSu`                        |
+| Chat & Hỗ trợ                             | ❌ Chưa có                       | Cần thêm `ChatLichSu`, `ThongBaoHoTro`, controller liên quan |
+| Đánh giá & phản hồi khách                 | ❌ Chưa có                       | Cần thêm `DanhGia`                                           |
+| AI phân tích & ra quyết định              | ❌ Chưa có                       | Cần module mới WPF & API                                     |
+| Thông báo & cảnh báo thông minh           | ❌ Chưa có                       | Cần module `ThongBaoCanhBao`                                 |
+
+---
+
+👉 Gợi ý tiếp theo:
+Nếu bạn gửi **file `.sql` hoặc script tạo DB hiện tại (CautrucDataV2.sql)**, mình có thể **phân tích trực tiếp** và **liệt kê chi tiết các bảng còn thiếu** bằng so sánh tự động (AI phân tích DB schema → đối chiếu module trong solution).
+Bạn có muốn mình làm phân tích đó luôn để xuất bảng “Thiếu chức năng – thiếu bảng – cần thêm cột” không?
+Mình đã phân tích file **`CautrucDataV2.sql`** (cấu trúc cơ sở dữ liệu hiện tại) và so sánh với toàn bộ mã nguồn trong `AppCafebookApi`, `WebCafeBookApi`, `CafebookModel`, và `CafebookApi`.
+Dưới đây là **báo cáo phân tích tổng hợp** cho bạn — xác định rõ:
+
+✅ Những bảng và chức năng **đã có**
+⚠️ Những chức năng **chưa có bảng tương ứng**
+❌ Những tính năng **chưa tồn tại trong DB và code** (phải thêm mới nếu muốn hoàn chỉnh hệ thống)
+
+---
+
+## 🧩 1. HỆ THỐNG HIỆN CÓ (đã có trong `CautrucDataV2.sql`)
+
+| Nhóm chức năng              | Các bảng đã tồn tại                                                   | Ghi chú                                                    |
+| --------------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------- |
+| **Tài khoản & phân quyền**  | `TaiKhoan`, `NhanVien`, `KhachHang`, `VaiTro`, `PhanQuyen`            | Quản lý quyền người dùng, đăng nhập, nhân viên, khách hàng |
+| **Sách**                    | `Sach`, `TheLoaiSach`, `TacGia`, `NhaXuatBan`                         | Đầy đủ quản lý sách                                        |
+| **Thuê sách**               | `PhieuThueSach`, `ChiTietPhieuThueSach`, `TraSach`, `ChiTietPhieuTra` | Có đủ phiếu thuê – trả sách                                |
+| **Món ăn & đồ uống**        | `SanPham`, `LoaiSanPham`, `NguyenLieu`, `CongThuc`                    | Quản lý món ăn, nguyên liệu                                |
+| **Đặt bàn & gọi món**       | `Ban`, `HoaDon`, `ChiTietHoaDon`, `DatBan`                            | Có mô hình quán café hoàn chỉnh                            |
+| **Nhập – Xuất – Kho**       | `NhapKho`, `ChiTietNhapKho`, `XuatKho`, `ChiTietXuatKho`, `TonKho`    | Đủ nghiệp vụ quản lý kho                                   |
+| **Lương – Chấm công**       | `ChamCong`, `BangLuong`, `ChiTietLuong`, `ThuongPhat`                 | Đầy đủ hệ thống lương                                      |
+| **Khuyến mãi & chính sách** | `KhuyenMai`, `ChiTietKhuyenMai`, `ChinhSach`                          | Có sẵn khuyến mãi                                          |
+| **Thống kê & báo cáo**      | `BaoCaoDoanhThu`, `BaoCaoTonKho`, `BaoCaoSach`, `BaoCaoHieuSuat`      | Có module báo cáo chuẩn                                    |
+| **Thông báo & liên hệ**     | `ThongBao`, `LienHe`                                                  | Có hệ thống thông báo cơ bản                               |
+
+🟢 Tổng thể: **hệ thống lõi đã hoàn thiện 80–85%**.
+
+---
+
+## ⚠️ 2. NHỮNG CHỨC NĂNG MÃ NGUỒN CÓ NHƯNG DB CHƯA CÓ (thiếu bảng hoặc cột)
+
+| Chức năng                             | Tình trạng                                                                                     | Gợi ý thêm                                                                  |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| **Giao hàng (Delivery)**              | ⚠️ Có `GiaoHangView.xaml`, `GiaoHangController.cs` nhưng **không có bảng `GiaoHang` trong DB** | ➕ Cần tạo bảng `GiaoHang` và `GiaoHangLichSu`                               |
+| **Giỏ hàng web đa loại (món + sách)** | ⚠️ Có `GioHangController`, nhưng DB chỉ lưu `IdSanPham` hoặc `IdSach` riêng lẻ                 | ➕ Cần thêm cột `LoaiHang` (`Sach` / `Mon`)                                  |
+| **Theo dõi đơn đặt hàng web**         | ⚠️ Có giao diện “Đơn mua” trong web nhưng **không có bảng `DonMua` / `ChiTietDonMua`**         | ➕ Nên thêm để tách khỏi `HoaDon` (đơn online)                               |
+| **Phản hồi khách hàng / hỗ trợ**      | ⚠️ Có `LienHe` nhưng không có `HoTroChat` hoặc `ThongBaoHoTro`                                 | ➕ Thêm bảng `ChatLichSu`, `ThongBaoHoTro`                                   |
+| **Đánh giá (rating)**                 | ❌ Chưa có bảng nào chứa dữ liệu đánh giá                                                       | ➕ Tạo `DanhGia` (sách, món, dịch vụ)                                        |
+| **Chat hỗ trợ AI và nhân viên**       | ❌ Chưa có `ChatLichSu`, `HoTroController`, `ThongBaoHoTro`                                     | ➕ Bổ sung module hỗ trợ                                                     |
+| **Báo cáo phân tích thông minh (AI)** | ❌ Không có bảng lưu truy vấn / kết quả                                                         | ➕ Thêm `PhanTichYeuCau` hoặc `QueryLog`                                     |
+| **Cảnh báo thông minh (Alert)**       | ❌ Không có                                                                                     | ➕ Tạo `ThongBaoCanhBao` (ví dụ: tồn kho thấp, đánh giá xấu, doanh thu giảm) |
+
+---
+
+## ❌ 3. CHỨC NĂNG CHƯA TỒN TẠI TRONG CSDL & CODE (chưa có gì)
+
+| Nhóm chức năng mới                                 | Mô tả cần thêm                                             |
+| -------------------------------------------------- | ---------------------------------------------------------- |
+| **Chat hỗ trợ ra quyết định (AI + WPF)**           | Phân tích DB, sinh báo cáo gợi ý cho quản lý               |
+| **Phân tích doanh thu – hành vi khách hàng**       | AI xử lý dữ liệu `HoaDon`, `PhieuThueSach`, `DanhGia`      |
+| **Thông báo tự động (automation)**                 | Gửi cảnh báo khi doanh thu giảm / sách hết / đánh giá thấp |
+| **Báo cáo quản trị hợp nhất (dashboard tổng hợp)** | Tích hợp dữ liệu đa nguồn: món + sách + nhân sự            |
+| **Phản hồi đa kênh (chat + email)**                | Kết nối với email và chat nội bộ                           |
+| **Lịch nhắc tự động (background job)**             | Gửi thông báo hoặc báo cáo định kỳ                         |
+
+---
+
+## 🧱 4. GỢI Ý THÊM BẢNG & QUAN HỆ CẦN BỔ SUNG
+
+### 📦 Bảng `GiaoHang`
+
+```sql
+CREATE TABLE GiaoHang (
+    IdGiaoHang INT IDENTITY PRIMARY KEY,
+    IdHoaDon INT NULL,
+    IdPhieuThueSach INT NULL,
+    LoaiDon NVARCHAR(20),
+    IdNhanVien INT NOT NULL,
+    TrangThai NVARCHAR(50) DEFAULT N'Chờ giao',
+    NgayNhan DATETIME,
+    NgayHoanThanh DATETIME,
+    GhiChu NVARCHAR(500),
+    HinhAnhXacNhan NVARCHAR(255)
+);
+```
+
+---
+
+### 💬 Bảng `ChatLichSu` + `ThongBaoHoTro`
+
+```sql
+CREATE TABLE ChatLichSu (
+    IdChat INT IDENTITY PRIMARY KEY,
+    IdKhachHang INT,
+    LoaiNguoiDung NVARCHAR(20), -- KhachHang / NhanVien / AI
+    NoiDung NVARCHAR(MAX),
+    ThoiGian DATETIME DEFAULT GETDATE(),
+    IdThongBao INT NULL
+);
+
+CREATE TABLE ThongBaoHoTro (
+    IdThongBao INT IDENTITY PRIMARY KEY,
+    IdKhachHang INT,
+    NoiDung NVARCHAR(MAX),
+    TrangThai NVARCHAR(20) DEFAULT N'Chờ xử lý',
+    IdNhanVien INT NULL,
+    NgayTao DATETIME DEFAULT GETDATE(),
+    NgayPhanHoi DATETIME NULL
+);
+```
+
+---
+
+### ⭐ Bảng `DanhGia`
+
+```sql
+CREATE TABLE DanhGia (
+    IdDanhGia INT IDENTITY PRIMARY KEY,
+    IdKhachHang INT NOT NULL,
+    LoaiDon NVARCHAR(20), -- 'Sach' hoặc 'Mon'
+    IdDoiTuong INT, -- IdSach hoặc IdSanPham
+    SoSao INT CHECK (SoSao BETWEEN 1 AND 5),
+    NoiDung NVARCHAR(MAX),
+    HinhAnh NVARCHAR(255),
+    NgayDanhGia DATETIME DEFAULT GETDATE()
+);
+```
+
+---
+
+### 🧠 Bảng `PhanTichYeuCau`
+
+```sql
+CREATE TABLE PhanTichYeuCau (
+    IdPhanTich INT IDENTITY PRIMARY KEY,
+    IdNhanVien INT,
+    CauHoi NVARCHAR(MAX),
+    CauTraLoi NVARCHAR(MAX),
+    SqlQuery NVARCHAR(MAX),
+    NgayPhanTich DATETIME DEFAULT GETDATE()
+);
+```
+
+---
+
+### 🚨 Bảng `ThongBaoCanhBao`
+
+```sql
+CREATE TABLE ThongBaoCanhBao (
+    IdThongBao INT IDENTITY PRIMARY KEY,
+    LoaiCanhBao NVARCHAR(50),
+    NoiDung NVARCHAR(MAX),
+    MucDo NVARCHAR(20), -- Thấp / Trung bình / Cao
+    NgayTao DATETIME DEFAULT GETDATE(),
+    TrangThai NVARCHAR(20) DEFAULT N'Chưa đọc'
+);
+```
+
+---
+
+## 📊 5. TỔNG KẾT KIỂM TRA CHỨC NĂNG THEO MÔ-ĐUN
+
+| Module                                   | Trạng thái                             | Ghi chú |
+| ---------------------------------------- | -------------------------------------- | ------- |
+| **Thuê sách – trả sách**                 | ✅ Hoàn chỉnh                           |         |
+| **Món ăn – gọi món – bàn**               | ✅ Hoàn chỉnh                           |         |
+| **Giao hàng**                            | ⚠️ Có controller, thiếu bảng           |         |
+| **Giỏ hàng**                             | ⚠️ Cần thêm loại sản phẩm (sách/món)   |         |
+| **Hỗ trợ & chat**                        | ❌ Thiếu toàn bộ DB                     |         |
+| **Đánh giá**                             | ❌ Thiếu DB và controller               |         |
+| **AI phân tích & báo cáo quản trị**      | ❌ Thiếu hoàn toàn                      |         |
+| **Cảnh báo thông minh**                  | ❌ Chưa có                              |         |
+| **Automation (background)**              | ⚠️ Có controller, cần thêm jobs cụ thể |         |
+| **Web khách hàng (đặt, thuê, phản hồi)** | ✅ Đầy đủ                               |         |
+
+---
+
+## ✅ Kết luận cuối cùng
+
+> CSDL hiện tại **đáp ứng đầy đủ các nghiệp vụ chính (bán hàng, thuê sách, kho, nhân sự)**,
+> nhưng để hoàn chỉnh hệ thống theo hướng **AI hỗ trợ, chat, phản hồi, và phân tích quản trị**,
+> bạn cần bổ sung **tối thiểu 5 bảng mới**:
+
+1. `GiaoHang`
+2. `DanhGia`
+3. `ChatLichSu`
+4. `ThongBaoHoTro`
+5. `PhanTichYeuCau`
+   *(tùy chọn: `ThongBaoCanhBao` để cảnh báo thông minh)*
+
+---
+
+Nếu bạn muốn, mình có thể **tạo cho bạn file SQL hoàn chỉnh (`CautrucDataV3.sql`)**
+→ tự động **kế thừa toàn bộ bảng hiện có** và **chèn thêm các bảng còn thiếu** (kèm foreign key).
+
+Bạn có muốn mình tạo file đó sẵn để import vào SQL Server không?
